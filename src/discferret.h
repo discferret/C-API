@@ -41,7 +41,7 @@ typedef struct {
  * @brief	Handle to an open DiscFerret device.
  */
 typedef struct {
-	libusb_device_handle *dh;			///< Libusb device handle.
+	struct libusb_device_handle *dh;	///< Libusb device handle.
 } DISCFERRET_DEVICE_HANDLE;
 
 /**
@@ -51,8 +51,10 @@ typedef enum {
 	DISCFERRET_E_OK				=	0,		///< Operation succeeded.
 	DISCFERRET_E_ALREADY_INIT	=	-1024,	///< Library already initialised
 	DISCFERRET_E_NOT_INIT,					///< Library not initialised yet
+	DISCFERRET_E_BAD_PARAMETER,				///< Bad parameter passed to a library function
 	DISCFERRET_E_USB_ERROR,					///< USB error
 	DISCFERRET_E_OUT_OF_MEMORY,				///< Out of memory
+	DISCFERRET_E_NO_MATCH,					///< Unable to find a device matching the specified search criteria
 } DISCFERRET_ERROR;
 
 /**
@@ -81,8 +83,40 @@ DISCFERRET_ERROR discferret_done(void);
  *
  * If devlist is set to NULL, then a count of devices will be performed, but
  * no device list will be returned (for obvious reasons).
+ *
+ * A return code of 0 means the function succeeded, but no devices were found.
  */
 int discferret_find_devices(DISCFERRET_DEVICE **devlist);
+
+/**
+ * @brief	Open a DiscFerret with a given serial number
+ * @param	serialnum	Serial number of the DiscFerret unit to open.
+ * @param	dh			Pointer to a pointer to a DiscFerret Device Handle,
+ * 						which will store the device handle.
+ *
+ * Opens a DiscFerret device, and returns the device handle. If device opening
+ * fails, then one of the DISCFERRET_E_xxx constants will be returned, and
+ * *dh will be set to NULL.
+ *
+ * dh (the pointer-to-a-pointer) MUST NOT be set to NULL.
+ */
+int discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh);
+
+/**
+ * @brief	Open the first available DiscFerret device.
+ * @param	dh			Pointer to a pointer to a DiscFerret Device Handle,
+ * 						which will store the device handle.
+ *
+ * This is an alternative to the process of calling discferret_find_devices()
+ * and discferret_open(), and is intended for situations where only one
+ * DiscFerret is known to be attached to the system.
+ *
+ * A search is run for DiscFerret units, and the first available (unclaimed)
+ * DiscFerret unit is claimed, opened and a handle returned.
+ *
+ * dh (the pointer-to-a-pointer) MUST NOT be set to NULL.
+ */
+int discferret_open_first(DISCFERRET_DEVICE_HANDLE **dh);
 
 #ifdef __cplusplus
 }

@@ -77,7 +77,7 @@ int discferret_find_devices(DISCFERRET_DEVICE **devlist)
 
 	// If no devices (or an error), then we can't do anything...
 	if (cnt <= 0) {
-		devlist = NULL;
+		*devlist = NULL;
 		return (cnt < 0) ? DISCFERRET_E_USB_ERROR : 0;
 	}
 
@@ -143,4 +143,95 @@ int discferret_find_devices(DISCFERRET_DEVICE **devlist)
 
 	// Return number of devices we found
 	return devcount;
+}
+
+int discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh)
+{
+	libusb_device **usb_devices;
+	bool match = false;
+	int cnt;
+
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure the device handle is not null
+	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
+
+	// Scan for libusb devices
+	cnt = libusb_get_device_list(usbctx, &usb_devices);
+
+	// If no devices (or an error), then we can't do anything...
+	if (cnt <= 0) {
+		*dh = NULL;
+		return (cnt < 0) ? DISCFERRET_E_USB_ERROR : 0;
+	}
+
+	// Device count more than 0. Loop through the device list looking for a
+	// matching DiscFerret
+	for (int i=0; i<cnt; i++) {
+
+		// Read the device descriptor
+		struct libusb_device_descriptor desc;
+		libusb_get_device_descriptor(usb_devices[i], &desc);
+
+		// If the VID, PID and serial number (if specified) match, open it.
+		if ((desc.idVendor == 0x04d8) && (desc.idProduct == 0xfbbb)) {
+			struct libusb_device_handle *ldh;
+
+			// Are we matching on serial number?
+			if ((serialnum == NULL) || (strlen(serialnum) == 0)) {
+				// No, just opening a device based on VPID. Therefore, this is a match.
+				int r = libusb_open(usb_devices[i], &ldh);
+				if (r != 0) continue;
+				match = true;
+			} else {
+				// VID/PID match, check the serial number
+				int r = libusb_open(usb_devices[i], &ldh);
+				if (r != 0) continue;
+
+				// Get the serial number
+				unsigned char sernum[256];
+				if (desc.iSerialNumber != 0) {
+					int len = libusb_get_string_descriptor_ascii(ldh, desc.iSerialNumber, sernum, sizeof(sernum));
+					if (len <= 0) sernum[0] = '\0';
+
+					// if lengths do not match, this is not a match!
+					if (strlen(serialnum) != len) {
+						libusb_close(ldh);
+						continue;
+					}
+
+					if (strncmp((char *)sernum, (char *)serialnum, len) == 0) {
+						// Serial number matches. This is a match!
+						match = true;
+					}
+				}
+			}
+
+			// Do we have a match?
+			if (match) {
+				// May as well save the device handle (saves re-opening it later)
+				*dh = malloc(sizeof(DISCFERRET_DEVICE_HANDLE));
+				(*dh)->dh = ldh;
+				break;
+			}
+		}
+	}
+
+	// We're done with the device list... free it.
+	libusb_free_device_list(usb_devices, true);
+
+	// Any matches?
+	if (!match) {
+		*dh = NULL;
+		return DISCFERRET_E_NO_MATCH;
+	} else {
+		return DISCFERRET_E_OK;
+	}
+}
+
+int discferret_open_first(DISCFERRET_DEVICE_HANDLE **dh)
+{
+	// Find the first available DiscFerret device and open it
+	return discferret_open(NULL, dh);
 }
