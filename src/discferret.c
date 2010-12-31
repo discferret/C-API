@@ -210,10 +210,19 @@ int discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh)
 
 			// Do we have a match?
 			if (match) {
-				// May as well save the device handle (saves re-opening it later)
-				*dh = malloc(sizeof(DISCFERRET_DEVICE_HANDLE));
-				(*dh)->dh = ldh;
-				break;
+				// Try and claim the primary interface
+				int r = libusb_claim_interface(ldh, 0);
+				if (r < 0) {
+					// Failed to claim interface, so close the device and go around again.
+					libusb_close(ldh);
+					match = false;
+					continue;
+				} else {
+					// Interface claimed! Pass the device handle back to the caller.
+					*dh = malloc(sizeof(DISCFERRET_DEVICE_HANDLE));
+					(*dh)->dh = ldh;
+					break;
+				}
 			}
 		}
 	}
@@ -232,6 +241,19 @@ int discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh)
 
 int discferret_open_first(DISCFERRET_DEVICE_HANDLE **dh)
 {
-	// Find the first available DiscFerret device and open it
 	return discferret_open(NULL, dh);
+}
+
+int discferret_close(DISCFERRET_DEVICE_HANDLE *dh)
+{
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure device handle is not NULL
+	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
+
+	// Close the device handle
+	libusb_close(dh->dh);
+
+	return DISCFERRET_E_OK;
 }

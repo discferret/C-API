@@ -118,6 +118,11 @@ int discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh);
  */
 int discferret_open_first(DISCFERRET_DEVICE_HANDLE **dh);
 
+/**
+ * @brief	Close a DiscFerret device.
+ */
+int discferret_close(DISCFERRET_DEVICE_HANDLE *dh);
+
 #ifdef __cplusplus
 }
 #endif
