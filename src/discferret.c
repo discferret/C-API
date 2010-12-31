@@ -255,5 +255,8 @@ int discferret_close(DISCFERRET_DEVICE_HANDLE *dh)
 	// Close the device handle
 	libusb_close(dh->dh);
 
+	// Free allocated memory
+	free(dh);
+
 	return DISCFERRET_E_OK;
 }
