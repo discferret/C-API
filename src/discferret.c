@@ -10,9 +10,9 @@
 /// Global libusb context
 libusb_context *usbctx = NULL;
 
-char* discferret_copyright_notice(void)
+static char* ___discferret_copyright_notice(void)
 {
-	return "libdiscferret rev " HG_REV " (C) 2010 P. A. Pemberton. <http://www.discferret.com/>";
+	return "libdiscferret rev " HG_REV ", tag '" HG_TAG "' (C) 2010 P. A. Pemberton. <http://www.discferret.com/>";
 }
 
 int discferret_init(void)

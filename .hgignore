@@ -4,3 +4,4 @@ syntax: glob
 doc/*
 *.o
 *.so.*
+src/discferret_version.h
