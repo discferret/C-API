@@ -20,39 +20,69 @@
 #ifndef _DISCFERRET_H
 #define _DISCFERRET_H
 
+#include <libusb-1.0/libusb.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @brief	A structure containing information about a specific DiscFerret device.
+ * @brief	A structure to encapsulate information about a specific DiscFerret device.
  */
 typedef struct {
-	char *devicename;					///< Device name string.
-	char *manufacturer;					///< Device manufacturer.
-	char *serialnumber;					///< Device serial number.
-	libusb_device_handle *dh;			///< Device handle.
+	unsigned char productname[256];		///< Device product name.
+	unsigned char manufacturer[256];	///< Device manufacturer.
+	unsigned char serialnumber[256];	///< Device serial number.
+	uint16_t vid;						///< USB Vendor ID.
+	uint16_t pid;						///< USB Product ID.
 } DISCFERRET_DEVICE;
+
+/**
+ * @brief	Handle to an open DiscFerret device.
+ */
+typedef struct {
+	libusb_device_handle *dh;			///< Libusb device handle.
+} DISCFERRET_DEVICE_HANDLE;
 
 /**
  * @brief	DiscFerret library error codes.
  */
-enum {
-	DISCFERRET_E_OK				=	0,	///< Operation succeeded.
-	DISCFERRET_E_ALREADY_INIT,			///< Library already initialised
-	DISCFERRET_E_NOT_INIT,				///< Library not initialised yet
-	DISCFERRET_E_USB_ERROR,				///< USB error
-};
+typedef enum {
+	DISCFERRET_E_OK				=	0,		///< Operation succeeded.
+	DISCFERRET_E_ALREADY_INIT	=	-1024,	///< Library already initialised
+	DISCFERRET_E_NOT_INIT,					///< Library not initialised yet
+	DISCFERRET_E_USB_ERROR,					///< USB error
+	DISCFERRET_E_OUT_OF_MEMORY,				///< Out of memory
+} DISCFERRET_ERROR;
 
 /**
- * @brief	Initialise the DiscFerret library.
+ * @brief	Initialise libDiscFerret.
  * @note	Must be called before calling any other discferret_* functions.
+ * @returns	Error code, or DISCFERRET_E_OK on success.
  */
-int discferret_init(void);
+DISCFERRET_ERROR discferret_init(void);
 
 /**
- * @brief Enumerate all available DiscFerret devices.
+ * @brief	Shut down libDiscFerret.
+ * @note	Must be called after all DiscFerret calls have completed, but before the user application exits.
+ * @returns	Error code, or DISCFERRET_E_OK on success.
  */
+DISCFERRET_ERROR discferret_done(void);
+
+/**
+ * @brief	Enumerate all available DiscFerret devices.
+ * @param	devlist		Pointer to a DISCFERRET_DEVICE* block, or NULL.
+ * @return	Number of devices found, or one of the DISCFERRET_E_* error constants.
+ *
+ * This function scans the system for available DiscFerret devices which have
+ * not been claimed by another process. It returns either a DISCFERRET_E_xxx
+ * constant (if there was an error), or a count of the number of available
+ * devices.
+ *
+ * If devlist is set to NULL, then a count of devices will be performed, but
+ * no device list will be returned (for obvious reasons).
+ */
+int discferret_find_devices(DISCFERRET_DEVICE **devlist);
 
 #ifdef __cplusplus
 }

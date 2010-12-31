@@ -6,7 +6,7 @@ OBJS=discferret.o
 OBJS_SO=$(addprefix obj_so/,$(OBJS))
 
 CC=gcc
-CFLAGS=-g -ggdb -Wall -pedantic
+CFLAGS=-g -ggdb -Wall -pedantic -std=c99
 
 all:	output/$(SONAME).0
 
