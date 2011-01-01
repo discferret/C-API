@@ -30,11 +30,11 @@ extern "C" {
  * @brief	A structure to encapsulate information about a specific DiscFerret device.
  */
 typedef struct {
-	unsigned char productname[256];		///< Device product name.
-	unsigned char manufacturer[256];	///< Device manufacturer.
-	unsigned char serialnumber[256];	///< Device serial number.
-	uint16_t vid;						///< USB Vendor ID.
-	uint16_t pid;						///< USB Product ID.
+	unsigned char	productname[256];	///< Device product name.
+	unsigned char	manufacturer[256];	///< Device manufacturer.
+	unsigned char	serialnumber[256];	///< Device serial number.
+	uint16_t		vid;				///< USB Vendor ID.
+	uint16_t		pid;				///< USB Product ID.
 } DISCFERRET_DEVICE;
 
 /**
@@ -43,6 +43,19 @@ typedef struct {
 typedef struct {
 	struct libusb_device_handle *dh;	///< Libusb device handle.
 } DISCFERRET_DEVICE_HANDLE;
+
+/**
+ * @brief	Structure to contain information about a DiscFerret device.
+ */
+typedef struct {
+	unsigned int	firmware_ver;		///< Firmware version
+	unsigned int	microcode_type;		///< Microcode type
+	unsigned int	microcode_ver;		///< Microcode version
+	char			hardware_rev[5];	///< Hardware revision
+	unsigned char	productname[256];	///< Device product name.
+	unsigned char	manufacturer[256];	///< Device manufacturer.
+	unsigned char	serialnumber[256];	///< Device serial number.
+} DISCFERRET_DEVICE_INFO;
 
 /**
  * @brief	DiscFerret library error codes.
@@ -121,11 +134,28 @@ int discferret_open_first(DISCFERRET_DEVICE_HANDLE **dh);
 /**
  * @brief	Close a DiscFerret device.
  *
+ * @param	dh		DiscFerret device handle.
+ *
  * Closes a DiscFerret device handle which was obtained by calling
  * discferret_open() or discferret_open_first(). This function MUST be called
  * after the application is finished with the DiscFerret.
  */
 int discferret_close(DISCFERRET_DEVICE_HANDLE *dh);
+
+/**
+ * @brief	Retrieve a DiscFerret's unique ID and firmware version information.
+ *
+ * @param	dh		DiscFerret device handle.
+ *
+ * Obtains the DiscFerret device's version information, including hardware,
+ * firmware and microcode version information. Microcode version information
+ * is (obviously) only valid if a valid microcode image has been loaded.
+ *
+ * If the hardware version and/or serial number have not been programmed,
+ * these will generally read as '????' or an empty string, though this is
+ * not guaranteed.
+ */
+int discferret_get_info(DISCFERRET_DEVICE_HANDLE *dh, DISCFERRET_DEVICE_INFO *info);
 
 #ifdef __cplusplus
 }

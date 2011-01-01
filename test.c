@@ -33,6 +33,15 @@ int main(void)
 	printf("open serial TARKA: %d\n", discferret_open("TARKA", &devh));
 
 	// do some tests here
+	DISCFERRET_DEVICE_INFO info;
+	printf("getinfo: %d\n", discferret_get_info(devh, &info));
+	printf("\tfw ver:  %04X\n", info.firmware_ver);
+	printf("\thw rev:  %s\n", info.hardware_rev);
+	printf("\tmctype:  %04X\n", info.microcode_type);
+	printf("\tmc ver:  %04X\n", info.microcode_ver);
+	printf("\tmfg:     %s\n", info.manufacturer);
+	printf("\tproduct: %s\n", info.productname);
+	printf("\tserial#: %s\n", info.serialnumber);
 
 	printf("close: %d\n", discferret_close(devh));
 	printf("done: %d\n", discferret_done());
