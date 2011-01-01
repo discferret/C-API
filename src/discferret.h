@@ -68,6 +68,7 @@ typedef enum {
 	DISCFERRET_E_USB_ERROR,					///< USB error
 	DISCFERRET_E_OUT_OF_MEMORY,				///< Out of memory
 	DISCFERRET_E_NO_MATCH,					///< Unable to find a device matching the specified search criteria
+	DISCFERRET_E_HARDWARE_ERROR,			///< Hardware error
 } DISCFERRET_ERROR;
 
 /**
@@ -156,6 +157,21 @@ int discferret_close(DISCFERRET_DEVICE_HANDLE *dh);
  * not guaranteed.
  */
 int discferret_get_info(DISCFERRET_DEVICE_HANDLE *dh, DISCFERRET_DEVICE_INFO *info);
+
+/**
+ * @brief	Begin loading FPGA microcode.
+ *
+ * @param	dh		DiscFerret device handle.
+ *
+ * Call this function once at the beginning of an FPGA microcode load cycle.
+ * A typical load looks like this:
+ *   1. A call to discferret_fpga_load_begin()
+ *   2. One or more calls to discferret_fpga_load_block() or
+ *      discferret_fpga_load_rbf()
+ *   3. A call to discferret_fpga_get_status() to see if the FPGA accepted
+ *      the microcode load.
+ */
+int discferret_fpga_load_begin(DISCFERRET_DEVICE_HANDLE *dh);
 
 #ifdef __cplusplus
 }

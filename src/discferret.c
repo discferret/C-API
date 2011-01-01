@@ -142,12 +142,12 @@ enum {
 
 /// DiscFerret hardware error codes
 enum {
-	ERR_OK					= 0,
-	ERR_HARDWARE_ERROR		= 1,
-	ERR_INVALID_LEN			= 2,
-	ERR_FPGA_NOT_CONF		= 3,
-	ERR_FPGA_REFUSED_CONF	= 4,
-	ERR_INVALID_PARAM		= 5
+	FW_ERR_OK					= 0,
+	FW_ERR_HARDWARE_ERROR		= 1,
+	FW_ERR_INVALID_LEN			= 2,
+	FW_ERR_FPGA_NOT_CONF		= 3,
+	FW_ERR_FPGA_REFUSED_CONF	= 4,
+	FW_ERR_INVALID_PARAM		= 5
 };
 
 /// DiscFerret library's libusb context
@@ -470,3 +470,31 @@ int discferret_get_info(DISCFERRET_DEVICE_HANDLE *dh, DISCFERRET_DEVICE_INFO *in
 	return DISCFERRET_E_OK;
 }
 
+int discferret_fpga_load_begin(DISCFERRET_DEVICE_HANDLE *dh)
+{
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure device handle is not NULL
+	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
+
+	// Send an FPGA_INIT command
+	unsigned char buf = CMD_FPGA_INIT;
+	int a, r;
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_OUT, &buf, 1, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+
+	// Read the response code
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, &buf, 1, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+
+	// Check the response code
+	switch (buf) {
+		case FW_ERR_HARDWARE_ERROR:
+			return DISCFERRET_E_HARDWARE_ERROR;
+		case FW_ERR_OK:
+			return DISCFERRET_E_OK;
+		default:
+			return DISCFERRET_E_USB_ERROR;
+	}
+}
