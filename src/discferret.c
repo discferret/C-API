@@ -12,10 +12,10 @@
 #include "discferret.h"
 #include "discferret_version.h"
 
-/// Global libusb context
-libusb_context *usbctx = NULL;
+/// DiscFerret library's libusb context
+static libusb_context *usbctx = NULL;
 
-static char* ___discferret_copyright_notice(void)
+static char* discferret_copyright_notice(void)
 {
 #ifndef NDEBUG
 #define DBGSTR " (debug build)"
@@ -24,6 +24,21 @@ static char* ___discferret_copyright_notice(void)
 #endif
 	return "libdiscferret rev " HG_REV ", tag '" HG_TAG "'" DBGSTR " (C) 2010 P. A. Pemberton. <http://www.discferret.com/>";
 #undef DBGSTR
+}
+
+/**
+ * @brief	Swap the bits in a byte
+ * 
+ * Used by the RBF Uploader -- the PIC's MSSP sends bits to the FPGA config
+ * port in reverse order. To save CPU time on the PIC, we swap the bits here,
+ * then send the 'bitswapped' block instead.
+ */
+static unsigned char bitswap(unsigned char num)
+{
+	unsigned char val;
+	for (int i=0; i<8; i++)
+		val = (val << 1) | ((num & 1<<i) ? 1 : 0);
+	return val;
 }
 
 int discferret_init(void)
@@ -44,7 +59,7 @@ int discferret_init(void)
 #endif
 
 	// Keep the copyright notice in the binary
-	___discferret_copyright_notice();
+	discferret_copyright_notice();
 
 	return DISCFERRET_E_OK;
 }
