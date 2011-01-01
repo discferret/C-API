@@ -120,6 +120,10 @@ int discferret_open_first(DISCFERRET_DEVICE_HANDLE **dh);
 
 /**
  * @brief	Close a DiscFerret device.
+ *
+ * Closes a DiscFerret device handle which was obtained by calling
+ * discferret_open() or discferret_open_first(). This function MUST be called
+ * after the application is finished with the DiscFerret.
  */
 int discferret_close(DISCFERRET_DEVICE_HANDLE *dh);
 
