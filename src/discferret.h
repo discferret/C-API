@@ -173,8 +173,29 @@ int discferret_get_info(DISCFERRET_DEVICE_HANDLE *dh, DISCFERRET_DEVICE_INFO *in
  *      discferret_fpga_load_rbf()
  *   3. A call to discferret_fpga_get_status() to see if the FPGA accepted
  *      the microcode load.
+ *
+ * User applications should consider using discferret_fpga_load_rbf() instead,
+ * as this is encapsulates the entire sequence as shown above, and markedly
+ * simplifies user code.
  */
 int discferret_fpga_load_begin(DISCFERRET_DEVICE_HANDLE *dh);
+
+/**
+ * @brief	Load a block of microcode into the FPGA (max 62 bytes)
+ * @param	dh		DiscFerret device handle.
+ * @param	block	Data block to load.
+ * @param	len		Length of data block.
+ * @param	swap	TRUE to bitswap the data before sending it.
+ * @returns DISCFERRET_E_OK on success, one of the DISCFERRET_E_xxx constants on error.
+ *
+ * Loads a block of microcode data (maximum length 62 bytes) into the FPGA,
+ * optionally bitswapping the data before sending it.
+ *
+ * User applications should consider using discferret_fpga_load_rbf() instead,
+ * as this is encapsulates the entire loading sequence, and markedly simplifies
+ * user code.
+ */
+int discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len, int swap);
 
 /**
  * @brief	Get the current status of the DiscFerret's FPGA
@@ -191,6 +212,18 @@ int discferret_fpga_load_begin(DISCFERRET_DEVICE_HANDLE *dh);
  * into the FPGA, and the DiscFerret will not function.
  */
 int discferret_fpga_get_status(DISCFERRET_DEVICE_HANDLE *dh);
+
+/**
+ * @brief	Load an RBF file into the DiscFerret's FPGA
+ * @param	dh		DiscFerret device handle.
+ * @param	rbfdata	Pointer to RBF data, as read from the .RBF file.
+ * @param	len		Length of the RBF data buffer.
+ * @returns DISCFERRET_E_OK if microcode was loaded successfully,
+ * 			DISCFERRET_E_BAD_PARAMETER if one or more parameters were invalid,
+ * 			DISCFERRET_E_HARDWARE_ERROR if FPGA failed to enter load mode,
+ * 			DISCFERRET_E_FPGA_NOT_CONFIGURED if FPGA rejected the config load.
+ */
+int discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *rbfdata, size_t len);
 
 #ifdef __cplusplus
 }

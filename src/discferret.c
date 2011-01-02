@@ -527,3 +527,85 @@ int discferret_fpga_get_status(DISCFERRET_DEVICE_HANDLE *dh)
 			return DISCFERRET_E_USB_ERROR;
 	}
 }
+
+int discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len, int swap)
+{
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure device handle is not NULL
+	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
+
+	// Check that the block length does not exceed 62 bytes
+	if (len > 62) return DISCFERRET_E_BAD_PARAMETER;
+
+	unsigned char buf[64];
+	int i = 0, a, r;
+	// Command code and length
+	buf[i++] = CMD_FPGA_LOAD;
+	buf[i++] = len;
+	if (!swap) {
+		// Send without bitswap
+		memcpy(&buf[i], block, len);
+		i += len;
+	} else {
+		// Send with bitswap
+		for (a=0; a<len; a++)
+			buf[i++] = bitswap(block[a]);
+	}
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_OUT, buf, i, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+
+	// Read the response code
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, buf, 1, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+
+	// Check the response code
+	switch (buf[0]) {
+		case FW_ERR_INVALID_LEN:
+			return DISCFERRET_E_BAD_PARAMETER;
+		case FW_ERR_OK:
+			return DISCFERRET_E_OK;
+		default:
+			return DISCFERRET_E_USB_ERROR;
+	}
+}
+
+int discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *rbfdata, size_t len)
+{
+	int resp;
+
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure device handle and data block pointer are not NULL
+	if ((dh == NULL) || (rbfdata == NULL)) return DISCFERRET_E_BAD_PARAMETER;
+
+	// Start the load sequence
+	resp = discferret_fpga_load_begin(dh);
+	if (resp != DISCFERRET_E_OK) return resp;
+
+	// Make sure the FPGA is in load mode
+	resp = discferret_fpga_get_status(dh);
+	if (resp != DISCFERRET_E_FPGA_NOT_CONFIGURED) return DISCFERRET_E_HARDWARE_ERROR;
+
+	// Start loading blocks of RBF data
+	size_t pos, i;
+	pos = 0;
+	while (pos < len) {
+		// calculate largest block we can send without overflowing the device buffer
+		i = ((len - pos) > 62) ? 62 : (len - pos);
+		// send the block
+		resp = discferret_fpga_load_block(dh, &rbfdata[pos], i, 1);
+		if (resp != DISCFERRET_E_OK) return resp;
+		// update read pointer
+		pos += i;
+	}
+
+	// Check that the FPGA load completed successfully
+	resp = discferret_fpga_get_status(dh);
+	if (resp != DISCFERRET_E_OK) return DISCFERRET_E_FPGA_NOT_CONFIGURED;
+
+	// Load complete, return OK status.
+	return DISCFERRET_E_OK;
+}
