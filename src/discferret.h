@@ -20,6 +20,7 @@
 #ifndef _DISCFERRET_H
 #define _DISCFERRET_H
 
+#include <stdbool.h>
 #include <libusb-1.0/libusb.h>
 
 #ifdef __cplusplus
@@ -196,7 +197,7 @@ int discferret_fpga_load_begin(DISCFERRET_DEVICE_HANDLE *dh);
  * as this is encapsulates the entire loading sequence, and markedly simplifies
  * user code.
  */
-int discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len, int swap);
+int discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len, bool swap);
 
 /**
  * @brief	Get the current status of the DiscFerret's FPGA

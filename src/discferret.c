@@ -528,7 +528,7 @@ int discferret_fpga_get_status(DISCFERRET_DEVICE_HANDLE *dh)
 	}
 }
 
-int discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len, int swap)
+int discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len, bool swap)
 {
 	// Check that the library has been initialised
 	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
@@ -596,7 +596,7 @@ int discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *rbfdat
 		// calculate largest block we can send without overflowing the device buffer
 		i = ((len - pos) > 62) ? 62 : (len - pos);
 		// send the block
-		resp = discferret_fpga_load_block(dh, &rbfdata[pos], i, 1);
+		resp = discferret_fpga_load_block(dh, &rbfdata[pos], i, true);
 		if (resp != DISCFERRET_E_OK) return resp;
 		// update read pointer
 		pos += i;
