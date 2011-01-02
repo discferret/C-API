@@ -1,5 +1,6 @@
 // make && gcc -g -ggdb -o test test.c -ldiscferret -lusb-1.0 -L. && ./test
 #include <stdio.h>
+#include <malloc.h>
 #include "src/discferret.h"
 
 int main(void)
@@ -47,6 +48,16 @@ int main(void)
 	printf("poll fpga status: %d\n", discferret_fpga_get_status(devh));
 	printf("fpga init: %d\n", discferret_fpga_load_begin(devh));
 	printf("poll fpga status: %d\n", discferret_fpga_get_status(devh));
+
+	FILE *fp = fopen("microcode.rbf", "rb");
+	fseek(fp, 0, SEEK_END);
+	size_t len = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+	unsigned char *rbfdata = malloc(len);
+	fread(rbfdata, 1, len, fp);
+	printf("load fpga mcode: %d\n", discferret_fpga_load_rbf(devh, rbfdata, len));
+	printf("poll fpga status: %d\n", discferret_fpga_get_status(devh));
+	free(rbfdata);
 
 	printf("close: %d\n", discferret_close(devh));
 	printf("done: %d\n", discferret_done());
