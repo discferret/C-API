@@ -554,7 +554,7 @@ int discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *bloc
 			buf[i++] = bitswap(block[a]);
 	}
 	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_OUT, buf, i, &a, USB_TIMEOUT);
-	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+	if ((r != 0) || (a != i)) return DISCFERRET_E_USB_ERROR;
 
 	// Read the response code
 	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, buf, 1, &a, USB_TIMEOUT);
