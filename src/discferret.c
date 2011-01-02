@@ -498,3 +498,32 @@ int discferret_fpga_load_begin(DISCFERRET_DEVICE_HANDLE *dh)
 			return DISCFERRET_E_USB_ERROR;
 	}
 }
+
+int discferret_fpga_get_status(DISCFERRET_DEVICE_HANDLE *dh)
+{
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure device handle is not NULL
+	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
+
+	// Send an FPGA_POLL command
+	unsigned char buf = CMD_FPGA_POLL;
+	int a, r;
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_OUT, &buf, 1, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+
+	// Read the response code
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, &buf, 1, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+
+	// Check the response code
+	switch (buf) {
+		case FW_ERR_FPGA_NOT_CONF:
+			return DISCFERRET_E_FPGA_NOT_CONFIGURED;
+		case FW_ERR_OK:
+			return DISCFERRET_E_OK;
+		default:
+			return DISCFERRET_E_USB_ERROR;
+	}
+}

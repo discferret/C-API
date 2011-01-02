@@ -68,7 +68,8 @@ typedef enum {
 	DISCFERRET_E_USB_ERROR,					///< USB error
 	DISCFERRET_E_OUT_OF_MEMORY,				///< Out of memory
 	DISCFERRET_E_NO_MATCH,					///< Unable to find a device matching the specified search criteria
-	DISCFERRET_E_HARDWARE_ERROR,			///< Hardware error
+	DISCFERRET_E_HARDWARE_ERROR,			///< Hardware error (malfunction)
+	DISCFERRET_E_FPGA_NOT_CONFIGURED,		///< FPGA not configured (microcode not loaded)
 } DISCFERRET_ERROR;
 
 /**
@@ -81,14 +82,14 @@ DISCFERRET_ERROR discferret_init(void);
 /**
  * @brief	Shut down libDiscFerret.
  * @note	Must be called after all DiscFerret calls have completed, but before the user application exits.
- * @returns	Error code, or DISCFERRET_E_OK on success.
+ * @returns DISCFERRET_E_OK on success, one of the DISCFERRET_E_xxx constants on error.
  */
 DISCFERRET_ERROR discferret_done(void);
 
 /**
  * @brief	Enumerate all available DiscFerret devices.
  * @param	devlist		Pointer to a DISCFERRET_DEVICE* block, or NULL.
- * @return	Number of devices found, or one of the DISCFERRET_E_* error constants.
+ * @returns	Number of devices found, or one of the DISCFERRET_E_* error constants.
  *
  * This function scans the system for available DiscFerret devices which have
  * not been claimed by another process. It returns either a DISCFERRET_E_xxx
@@ -107,6 +108,7 @@ int discferret_find_devices(DISCFERRET_DEVICE **devlist);
  * @param	serialnum	Serial number of the DiscFerret unit to open.
  * @param	dh			Pointer to a pointer to a DiscFerret Device Handle,
  * 						which will store the device handle.
+ * @returns DISCFERRET_E_OK on success, one of the DISCFERRET_E_xxx constants on error.
  *
  * Opens a DiscFerret device, and returns the device handle. If device opening
  * fails, then one of the DISCFERRET_E_xxx constants will be returned, and
@@ -120,6 +122,7 @@ int discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh);
  * @brief	Open the first available DiscFerret device.
  * @param	dh			Pointer to a pointer to a DiscFerret Device Handle,
  * 						which will store the device handle.
+ * @returns DISCFERRET_E_OK on success, one of the DISCFERRET_E_xxx constants on error.
  *
  * This is an alternative to the process of calling discferret_find_devices()
  * and discferret_open(), and is intended for situations where only one
@@ -134,8 +137,8 @@ int discferret_open_first(DISCFERRET_DEVICE_HANDLE **dh);
 
 /**
  * @brief	Close a DiscFerret device.
- *
  * @param	dh		DiscFerret device handle.
+ * @returns DISCFERRET_E_OK on success, one of the DISCFERRET_E_xxx constants on error.
  *
  * Closes a DiscFerret device handle which was obtained by calling
  * discferret_open() or discferret_open_first(). This function MUST be called
@@ -145,8 +148,8 @@ int discferret_close(DISCFERRET_DEVICE_HANDLE *dh);
 
 /**
  * @brief	Retrieve a DiscFerret's unique ID and firmware version information.
- *
  * @param	dh		DiscFerret device handle.
+ * @returns DISCFERRET_E_OK on success, one of the DISCFERRET_E_xxx constants on error.
  *
  * Obtains the DiscFerret device's version information, including hardware,
  * firmware and microcode version information. Microcode version information
@@ -160,8 +163,8 @@ int discferret_get_info(DISCFERRET_DEVICE_HANDLE *dh, DISCFERRET_DEVICE_INFO *in
 
 /**
  * @brief	Begin loading FPGA microcode.
- *
  * @param	dh		DiscFerret device handle.
+ * @returns DISCFERRET_E_OK on success, one of the DISCFERRET_E_xxx constants on error.
  *
  * Call this function once at the beginning of an FPGA microcode load cycle.
  * A typical load looks like this:
@@ -172,6 +175,22 @@ int discferret_get_info(DISCFERRET_DEVICE_HANDLE *dh, DISCFERRET_DEVICE_INFO *in
  *      the microcode load.
  */
 int discferret_fpga_load_begin(DISCFERRET_DEVICE_HANDLE *dh);
+
+/**
+ * @brief	Get the current status of the DiscFerret's FPGA
+ * @param	dh		DiscFerret device handle.
+ * @returns DISCFERRET_E_OK if microcode is loaded,
+ * 			DISCFERRET_E_FPGA_NOT_CONFIGURED if FPGA is not configured, or
+ * 			one of the DISCFERRET_E_xxx constants on error.
+ *
+ * Requests the current status of the FPGA from the DiscFerret. If the return
+ * code is DISCFERRET_E_OK, then microcode has been loaded, and the Microcode
+ * Version and Microcode Type returned by discferret_get_info() can be
+ * reasonably assumed to be accurate and valid. If the return code is
+ * DISCFERRET_E_FPGA_NOT_CONFIGURED, then the microcode has not yet been loaded
+ * into the FPGA, and the DiscFerret will not function.
+ */
+int discferret_fpga_get_status(DISCFERRET_DEVICE_HANDLE *dh);
 
 #ifdef __cplusplus
 }

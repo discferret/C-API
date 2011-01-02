@@ -42,6 +42,11 @@ int main(void)
 	printf("\tmfg:     %s\n", info.manufacturer);
 	printf("\tproduct: %s\n", info.productname);
 	printf("\tserial#: %s\n", info.serialnumber);
+	printf("\n");
+
+	printf("poll fpga status: %d\n", discferret_fpga_get_status(devh));
+	printf("fpga init: %d\n", discferret_fpga_load_begin(devh));
+	printf("poll fpga status: %d\n", discferret_fpga_get_status(devh));
 
 	printf("close: %d\n", discferret_close(devh));
 	printf("done: %d\n", discferret_done());
