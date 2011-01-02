@@ -1,5 +1,5 @@
 /**
-/ * @file discferret.c
+ * @file discferret.c
  */
 
 #include <string.h>

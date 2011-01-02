@@ -149,6 +149,7 @@ int discferret_close(DISCFERRET_DEVICE_HANDLE *dh);
 /**
  * @brief	Retrieve a DiscFerret's unique ID and firmware version information.
  * @param	dh		DiscFerret device handle.
+ * @param	info	Pointer to a DISCFERRET_DEVICE_INFO block where the version info will be stored.
  * @returns DISCFERRET_E_OK on success, one of the DISCFERRET_E_xxx constants on error.
  *
  * Obtains the DiscFerret device's version information, including hardware,
