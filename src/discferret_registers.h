@@ -152,18 +152,31 @@ enum {
 
 /// DiscFerret STATUS bits
 enum {
+	/// Bit Mask for STATUS_ACQ_xxx bits
 	DISCFERRET_STATUS_ACQSTATUS_MASK	= 0x07,
+	/// Currently writing to disc
 	DISCFERRET_STATUS_ACQ_WRITING		= 0x04,
+	/// Waiting for trigger
 	DISCFERRET_STATUS_ACQ_WAITING		= 0x02,
+	/// Currently reading (acquiring data) from disc
 	DISCFERRET_STATUS_ACQ_ACQUIRING		= 0x01,
+	/// Idle
 	DISCFERRET_STATUS_ACQ_IDLE			= 0x00,
+	/// 1=Index pulse active (pin 8)
 	DISCFERRET_STATUS_INDEX				= 0x8000,
+	/// 1=Track 0 active (pin 26)
 	DISCFERRET_STATUS_TRACK0			= 0x4000,
+	/// 1=Disc write protected (pin 28)
 	DISCFERRET_STATUS_WRITE_PROTECT		= 0x2000,
+	/// 1=Disc changed (pin 2)
 	DISCFERRET_STATUS_DISC_CHANGE		= 0x1000,
+	/// 1=Density pin state (pin 2)
 	DISCFERRET_STATUS_DENSITY			= 0x0800,
+	/// 1=Stepping controller currently stepping in/out
 	DISCFERRET_STATUS_STEPPING			= 0x0400,
+	/// RAM empty (pointer = 0 and not full)
 	DISCFERRET_STATUS_RAM_EMPTY			= 0x0200,
+	/// RAM full (last RAM write caused RAM pointer wraparound)
 	DISCFERRET_STATUS_RAM_FULL			= 0x0100
 };
 
