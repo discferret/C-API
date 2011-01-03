@@ -560,7 +560,66 @@ int discferret_reg_poke(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr, unsigne
 	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_OUT, buf, i, &a, USB_TIMEOUT);
 	if ((r != 0) || (a != i)) return DISCFERRET_E_USB_ERROR;
 
+	// Read the response code
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, buf, 1, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+
+	// Check the response code
+	switch (buf[0]) {
+		case FW_ERR_OK:
+			return DISCFERRET_E_OK;
+		default:
+			return DISCFERRET_E_USB_ERROR;
+	}
+}
+
+long discferret_ram_addr_get(DISCFERRET_DEVICE_HANDLE *dh)
+{
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure device handle is not NULL
+	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
+
+	unsigned char buf[64];
+	int i = 0, a, r;
+	// Command code and length
+	buf[i++] = CMD_RAM_ADDR_GET;
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_OUT, buf, i, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != i)) return DISCFERRET_E_USB_ERROR;
+
 	// Read the response code and data byte
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, buf, 4, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+
+	// Check the response code
+	switch (buf[0]) {
+		case FW_ERR_OK:
+			return (buf[1]) + (buf[2] << 8) + (buf[3] << 16);
+		default:
+			return DISCFERRET_E_USB_ERROR;
+	}
+}
+
+int discferret_ram_addr_set(DISCFERRET_DEVICE_HANDLE *dh, unsigned long addr)
+{
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure device handle is not NULL
+	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
+
+	unsigned char buf[64];
+	int i = 0, a, r;
+	// Command code and length
+	buf[i++] = CMD_RAM_ADDR_SET;
+	buf[i++] = addr & 0xff;
+	buf[i++] = addr >> 8;
+	buf[i++] = addr >> 16;
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_OUT, buf, i, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != i)) return DISCFERRET_E_USB_ERROR;
+
+	// Read the response code
 	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, buf, 1, &a, USB_TIMEOUT);
 	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
 

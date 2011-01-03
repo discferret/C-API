@@ -251,6 +251,10 @@ int discferret_reg_peek(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr);
  */
 int discferret_reg_poke(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr, unsigned char data);
 
+long discferret_ram_addr_get(DISCFERRET_DEVICE_HANDLE *dh);
+int discferret_ram_addr_set(DISCFERRET_DEVICE_HANDLE *dh, unsigned long addr);
+
+
 #ifdef __cplusplus
 }
 #endif
