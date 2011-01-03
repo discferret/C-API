@@ -45,10 +45,12 @@ int main(void)
 	printf("\tserial#: %s\n", info.serialnumber);
 	printf("\n");
 
+	// reset fpga
 	printf("poll fpga status: %d\n", discferret_fpga_get_status(devh));
 	printf("fpga init: %d\n", discferret_fpga_load_begin(devh));
 	printf("poll fpga status: %d\n", discferret_fpga_get_status(devh));
 
+	// load fpga
 	FILE *fp = fopen("microcode.rbf", "rb");
 	fseek(fp, 0, SEEK_END);
 	size_t len = ftell(fp);
@@ -58,6 +60,12 @@ int main(void)
 	printf("load fpga mcode: %d\n", discferret_fpga_load_rbf(devh, rbfdata, len));
 	printf("poll fpga status: %d\n", discferret_fpga_get_status(devh));
 	free(rbfdata);
+
+	// get ram addr
+	printf("get ram addr: %d\n", discferret_ram_addr_get(devh));
+	printf("set ram addr 1234: %d\n", discferret_ram_addr_set(devh, 1234));
+	printf("get ram addr: %d\n", discferret_ram_addr_get(devh));
+	printf("set ram addr 0: %d\n", discferret_ram_addr_set(devh, 0));
 
 	printf("close: %d\n", discferret_close(devh));
 	printf("done: %d\n", discferret_done());

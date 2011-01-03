@@ -539,7 +539,7 @@ int discferret_reg_peek(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr)
 
 	// Read the response code and data byte
 	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, buf, 2, &a, USB_TIMEOUT);
-	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+	if ((r != 0) || (a != 2)) return DISCFERRET_E_USB_ERROR;
 
 	// Check the response code
 	switch (buf[0]) {
@@ -598,7 +598,7 @@ long discferret_ram_addr_get(DISCFERRET_DEVICE_HANDLE *dh)
 
 	// Read the response code and data byte
 	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, buf, 4, &a, USB_TIMEOUT);
-	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+	if ((r != 0) || (a != 4)) return DISCFERRET_E_USB_ERROR;
 
 	// Check the response code
 	switch (buf[0]) {
