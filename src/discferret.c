@@ -1,6 +1,14 @@
-/**
- * @file discferret.c
- */
+/****************************************************************************
+ *
+ *                - DiscFerret Interface Library for C / C++ -
+ *
+ * Copyright (C) 2010 - 2011 P. A. Pemberton t/a. Red Fox Engineering.
+ * All Rights Reserved.
+ *
+ * This library (libdiscferret.so, discferret.c, discferret.h) is distributed
+ * under the Apache License, version 2.0. Distribution is permitted under the
+ * terms of the aforementioned License.
+ ****************************************************************************/
 
 #include <string.h>
 #include <malloc.h>
@@ -12,112 +20,6 @@
 
 /// USB timeout value, in milliseconds
 #define USB_TIMEOUT 100
-
-/// DiscFerret control registers (write only)
-enum {
-	DRIVE_CONTROL			= 0x04,
-	ACQCON					= 0x05,
-	ACQ_START_EVT			= 0x06,
-	ACQ_STOP_EVT			= 0x07,
-	ACQ_START_NUM			= 0x08,
-	ACQ_STOP_NUM			= 0x09,
-
-	ACQ_HSTMD_THR_START		= 0x10,
-	ACQ_HSTMD_THR_STOP		= 0x11,
-
-	MFM_SYNCWORD_START_L	= 0x20,
-	MFM_SYNCWORD_START_H	= 0x21,
-	MFM_SYNCWORD_STOP_L		= 0x22,
-	MFM_SYNCWORD_STOP_H		= 0x23,
-	MFM_MASK_START_L		= 0x24,
-	MFM_MASK_START_H		= 0x25,
-	MFM_MASK_STOP_L			= 0x26,
-	MFM_MASK_STOP_H			= 0x27,
-	MFM_CLKSEL				= 0x2F,	// MFM clock select
-
-	SCRATCHPAD				= 0x30,
-	INVERSE_SCRATCHPAD		= 0x31,
-	FIXED55					= 0x32,
-	FIXEDAA					= 0x33,
-	CLOCK_TICKER			= 0x34,
-	CLOCK_TICKER_PLL		= 0x35,
-
-	HSIO_DIR				= 0xE0,	// HSIO bit-bang pin direction
-	HSIO_PIN				= 0xE1,	// HSIO pins
-
-	STEP_RATE				= 0xF0,	// step rate, 250us per count
-	STEP_CMD				= 0xFF	// step command, bit7=direction, rest=num steps
-};
-
-/// Status registers (read only)
-enum {
-	STATUS1					= 0x0E,
-	STATUS2					= 0x0F
-};
-
-/// Step Command bits
-enum {
-	STEP_CMD_TOWARDS_ZERO	= 0x80,
-	STEP_CMD_AWAYFROM_ZERO	= 0x00,
-	STEP_COUNT_MASK			= 0x7F
-};
-
-/// DRIVE_CONTROL bits
-enum {
-	DRIVE_CONTROL_DENSITY	= 0x01,
-	DRIVE_CONTROL_INUSE		= 0x02,
-	DRIVE_CONTROL_DS0		= 0x04,
-	DRIVE_CONTROL_DS1		= 0x08,
-	DRIVE_CONTROL_DS2		= 0x10,
-	DRIVE_CONTROL_DS3		= 0x20,
-	DRIVE_CONTROL_MOTEN		= 0x40,
-	DRIVE_CONTROL_SIDESEL	= 0x80
-};
-
-/// ACQCON bits
-enum {
-	ACQCON_WRITE			= 0x04,
-	ACQCON_ABORT			= 0x02,
-	ACQCON_START			= 0x01
-};
-
-/// masks and events for ACQ_*_EVT registers
-enum {
-	ACQ_EVENT_IMMEDIATE		= 0x00,
-	ACQ_EVENT_INDEX			= 0x01,
-	ACQ_EVENT_MFM			= 0x02,
-	// "wait for HSTMD before acq" combination bit
-	ACQ_EVENT_WAIT_HSTMD	= 0x80
-};
-
-/// legal MFM_CLKSEL values
-enum {
-	MFM_CLKSEL_1MBPS		= 0x00,
-	MFM_CLKSEL_500KBPS		= 0x01,
-	MFM_CLKSEL_250KBPS		= 0x02,
-	MFM_CLKSEL_125KBPS		= 0x03
-};
-
-/// STATUS1 register bits
-enum {
-	STATUS1_ACQSTATUS_MASK	= 0x07,
-	STATUS1_ACQ_WRITING		= 0x04,
-	STATUS1_ACQ_WAITING		= 0x02,
-	STATUS1_ACQ_ACQUIRING	= 0x01,
-	STATUS1_ACQ_IDLE		= 0x00
-};
-
-/// STATUS2 register bits
-enum {
-	STATUS2_INDEX			= 0x80,
-	STATUS2_TRACK0			= 0x40,
-	STATUS2_WRITE_PROTECT	= 0x20,
-	STATUS2_DISC_CHANGE		= 0x10,
-	STATUS2_DENSITY			= 0x08,
-	STATUS2_STEPPING		= 0x04,
-	STATUS2_RAM_EMPTY		= 0x02,
-	STATUS2_RAM_FULL		= 0x01
-};
 
 /// DiscFerret hardware commands
 enum {
@@ -671,3 +573,4 @@ int discferret_reg_poke(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr, unsigne
 	}
 }
 
+// vim: ts=4

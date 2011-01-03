@@ -22,6 +22,7 @@
 
 #include <stdbool.h>
 #include <libusb-1.0/libusb.h>
+#include "discferret_registers.h"
 
 #ifdef __cplusplus
 extern "C" {
