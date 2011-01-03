@@ -686,6 +686,16 @@ int discferret_ram_write(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, siz
 	size_t blksz, pos, i;
 	int resp;
 
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure device handle is not NULL
+	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
+
+	// Make sure block pointer is non-NULL, and length is > 0
+	if (block == NULL) return DISCFERRET_E_BAD_PARAMETER;
+	if (len == 0) return DISCFERRET_E_BAD_PARAMETER;
+
 	if (dh->has_fast_ram_access)
 		// Note that Fast Write can send 65536 bytes, but this involves sending
 		// a final packet with only 3 bytes in it, which is a bit wasteful.
@@ -764,6 +774,16 @@ int discferret_ram_read(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size
 {
 	size_t blksz, pos, i;
 	int resp;
+
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure device handle is not NULL
+	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
+
+	// Make sure block pointer is non-NULL, and length is > 0
+	if (block == NULL) return DISCFERRET_E_BAD_PARAMETER;
+	if (len == 0) return DISCFERRET_E_BAD_PARAMETER;
 
 	if (dh->has_fast_ram_access)
 		// Device has Fast Read support, 64K max packet size
