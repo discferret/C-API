@@ -10,6 +10,11 @@
  * terms of the aforementioned License.
  ****************************************************************************/
 
+/**
+ * @file	discferret_registers.h
+ * @brief	DiscFerret registers and bit allocations.
+ */
+
 #ifndef DISCFERRET_REGISTERS_H
 #define DISCFERRET_REGISTERS_H
 
@@ -93,20 +98,31 @@ enum {
 
 /// DiscFerret DRIVE_CONTROL register bits
 enum {
+	/// Density output (pin 2)
 	DISCFERRET_DRIVE_CONTROL_DENSITY	= 0x01,
+	/// In Use output (pin 4)
 	DISCFERRET_DRIVE_CONTROL_INUSE		= 0x02,
+	/// Drive select 0 (pin 10)
 	DISCFERRET_DRIVE_CONTROL_DS0		= 0x04,
+	/// Drive select 1 (pin 12)
 	DISCFERRET_DRIVE_CONTROL_DS1		= 0x08,
+	/// Drive select 2 (pin 14)
 	DISCFERRET_DRIVE_CONTROL_DS2		= 0x10,
+	/// Drive select 3 (pin 6)
 	DISCFERRET_DRIVE_CONTROL_DS3		= 0x20,
+	/// Motor enable (pin 10)
 	DISCFERRET_DRIVE_CONTROL_MOTEN		= 0x40,
+	/// Side select (pin 32)
 	DISCFERRET_DRIVE_CONTROL_SIDESEL	= 0x80
 };
 
 /// DiscFerret Acquisition Control register bits
 enum {
+	/// 1=start a write operation
 	DISCFERRET_ACQCON_WRITE			= 0x04,
+	/// 1=abort current read/write operation
 	DISCFERRET_ACQCON_ABORT			= 0x02,
+	/// 1=start a read operation
 	DISCFERRET_ACQCON_START			= 0x01
 };
 
