@@ -66,6 +66,15 @@ int main(void)
 	printf("set ram addr 1234: %d\n", discferret_ram_addr_set(devh, 1234));
 	printf("get ram addr: %d\n", discferret_ram_addr_get(devh));
 	printf("set ram addr 0: %d\n", discferret_ram_addr_set(devh, 0));
+	printf("get ram addr: %d\n", discferret_ram_addr_get(devh));
+
+	// register poke/peek
+	printf("poke scratchpad DA: %d\n", discferret_reg_poke(devh, DISCFERRET_R_SCRATCHPAD, 0xDA));
+	printf("peek scratchpad: %02X\n", discferret_reg_peek(devh, DISCFERRET_R_SCRATCHPAD));
+	printf("peek invsp:      %02X\n", discferret_reg_peek(devh, DISCFERRET_R_INVERSE_SCRATCHPAD));
+
+	printf("peek ticker 1: %02X\n", discferret_reg_peek(devh, DISCFERRET_R_CLOCK_TICKER));
+	printf("peek ticker 2: %02X\n", discferret_reg_peek(devh, DISCFERRET_R_CLOCK_TICKER));
 
 	printf("close: %d\n", discferret_close(devh));
 	printf("done: %d\n", discferret_done());
