@@ -62,7 +62,12 @@ char* discferret_copyright_notice(void)
 #else
 #define DBGSTR ""
 #endif
+
+#ifdef CHECKOUT
 	return "libdiscferret rev " HG_REV ", tag '" HG_TAG "'" DBGSTR " (C) 2010 P. A. Pemberton. <http://www.discferret.com/>";
+#else
+	return "libdiscferret release " VERSION DBGSTR " (C) 2010 P. A. Pemberton. <http://www.discferret.com/>";
+#endif
 #undef DBGSTR
 }
 

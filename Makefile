@@ -4,6 +4,8 @@ SOLIB=libdiscferret.so
 SONAME=$(SOLIB).1
 SOVERS=$(SONAME).0
 
+VERSION=1.0
+
 OBJS=discferret.o
 OBJS_SO=$(addprefix obj_so/,$(OBJS))
 OBJS_A=$(addprefix obj_a/,$(OBJS))
@@ -30,10 +32,10 @@ output/$(SOLIB):	$(OBJS_SO)
 	$(LD) $(LDFLAGS) -shared -soname $(SONAME) -o $@ $<
 
 output/$(SONAME):	output/$(SOLIB)
-	cp $< $@
+	ln -s $(notdir $<) $@
 
 output/$(SOVERS):	output/$(SONAME)
-	cp $< $@
+	ln -s $(notdir $<) $@
 
 output/test:	test/test.c output/$(SONAME).0 src/discferret.h src/discferret_version.h
 	@echo
@@ -45,7 +47,7 @@ output/test:	test/test.c output/$(SONAME).0 src/discferret.h src/discferret_vers
 
 clean:
 	-rm -f libdiscferret.a $(OBJS_SO) src/discferret_version.h
-	-rm -f output/*
+	-rm -rf output/*
 	-rm -f testapp
 	-rm -rf doc/html
 	-mkdir -p obj_so output doc
@@ -55,7 +57,18 @@ obj_so/%.o:	src/%.c
 
 obj_so/discferret.o:	src/discferret.h src/discferret_version.h
 
+have_hg := $(wildcard .hg)
+ifeq ($(strip $(have_hg)),)
+src/discferret_version.h:
+	echo "#define HG_REV \"NO_REV\"" > $@
+	echo "#define HG_TAG \"NO_TAG\"" >> $@
+	echo "#undef CHECKOUT" >> $@
+	echo "#define VERSION \"$(VERSION)\"" >> $@
+else
 src/discferret_version.h:	.hg/store/00manifest.i
 	echo "#define HG_REV \"$(shell hg id | awk '{print $$1;}')\"" > $@
 	echo "#define HG_TAG \"$(shell hg id | awk '{print $$2;}')\"" >> $@
+	echo "#define CHECKOUT" >> $@
+	echo "#define VERSION \"hg\"" >> $@
+endif
 
