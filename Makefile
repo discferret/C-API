@@ -58,6 +58,11 @@ obj_so/%.o:	src/%.c
 obj_so/discferret.o:	src/discferret.h src/discferret_version.h
 
 have_hg := $(wildcard .hg)
+USE_HG ?= 1
+ifeq ($(strip $(USE_HG)),0)
+have_hg :=
+endif
+
 ifeq ($(strip $(have_hg)),)
 src/discferret_version.h:
 	echo "#define HG_REV \"NO_REV\"" > $@
