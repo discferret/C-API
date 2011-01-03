@@ -41,7 +41,7 @@ clean:
 	-rm -f libdiscferret.a $(OBJS_SO) src/discferret_version.h
 	-rm -f output/*
 	-rm -f testapp
-	-rm -rf doc/*
+	-rm -rf doc/html
 	-mkdir -p obj_so output doc
 
 obj_so/%.o:	src/%.c
