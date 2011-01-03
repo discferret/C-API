@@ -1,10 +1,12 @@
-.PHONY:	all clean doc
+.PHONY:	all install clean doc
 
 SOLIB=libdiscferret.so
 SONAME=$(SOLIB).1
 SOVERS=$(SONAME).0
 
-VERSION=1.0r1
+VERSION=1.0r2
+
+PREFIX?=/usr/local
 
 OBJS=discferret.o
 OBJS_SO=$(addprefix obj_so/,$(OBJS))
@@ -20,6 +22,14 @@ LDFLAGS=-s
 endif
 
 all:	output/$(SOVERS) output/test doc
+
+install:	all
+	mkdir -p $(PREFIX)/lib/discferret $(PREFIX)/include/discferret
+	cp output/libdiscferret.so $(PREFIX)/lib
+	cp src/discferret.h $(PREFIX)/include/discferret
+	cp src/discferret_registers.h $(PREFIX)/include/discferret
+	echo
+	echo "Installation complete. Now run ldconfig."
 
 doc:
 	@echo
