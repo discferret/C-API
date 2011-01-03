@@ -277,7 +277,15 @@ int discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh)
 					*dh = malloc(sizeof(DISCFERRET_DEVICE_HANDLE));
 					(*dh)->dh = ldh;
 
-					// TODO: get firmware version and set capability flags
+					// Pull the firmware version and set the capability flags
+					DISCFERRET_DEVICE_INFO devinfo;
+					if (discferret_get_info(*dh, &devinfo) != DISCFERRET_E_OK) {
+						libusb_close(ldh);
+						match = false;
+						continue;
+					}
+					(*dh)->has_fast_ram_access = (devinfo.firmware_ver >= 0x001B);
+
 					break;
 				}
 			}

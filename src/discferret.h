@@ -44,6 +44,7 @@ typedef struct {
  */
 typedef struct {
 	struct libusb_device_handle *dh;	///< Libusb device handle.
+	bool	has_fast_ram_access;		///< True if device supports Fast RAM R/W operations
 } DISCFERRET_DEVICE_HANDLE;
 
 /**
