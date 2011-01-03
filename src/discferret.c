@@ -55,7 +55,7 @@ enum {
 /// DiscFerret library's libusb context
 static libusb_context *usbctx = NULL;
 
-static char* discferret_copyright_notice(void)
+char* discferret_copyright_notice(void)
 {
 #ifndef NDEBUG
 #define DBGSTR " (debug build)"

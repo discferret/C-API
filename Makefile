@@ -9,7 +9,13 @@ OBJS_SO=$(addprefix obj_so/,$(OBJS))
 OBJS_A=$(addprefix obj_a/,$(OBJS))
 
 CC=gcc
+# debug flags
+ifdef DEBUG
 CFLAGS=-g -ggdb -Wall -pedantic -std=c99
+else
+CFLAGS=-O2 -Wall -pedantic -std=c99 -DNDEBUG
+LDFLAGS=-s
+endif
 
 all:	output/$(SOVERS) output/test doc
 
@@ -21,7 +27,7 @@ doc:
 output/$(SOLIB):	$(OBJS_SO)
 	@echo
 	@echo "### Linking shared library"
-	$(LD) -shared -soname $(SONAME) -o $@ $<
+	$(LD) $(LDFLAGS) -shared -soname $(SONAME) -o $@ $<
 
 output/$(SONAME):	output/$(SOLIB)
 	cp $< $@
@@ -32,7 +38,7 @@ output/$(SOVERS):	output/$(SONAME)
 output/test:	test/test.c output/$(SONAME).0 src/discferret.h src/discferret_version.h
 	@echo
 	@echo "### Building test application"
-	$(CC) $(CFLAGS) -o $@ -Loutput -ldiscferret -lusb-1.0 $<
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -Loutput -ldiscferret -lusb-1.0 $<
 
 #libdiscferret.a:	$(OBJS_A)
 #	ar -cr $@ $<
@@ -50,6 +56,6 @@ obj_so/%.o:	src/%.c
 obj_so/discferret.o:	src/discferret.h src/discferret_version.h
 
 src/discferret_version.h:	.hg/store/00manifest.i
-	echo "#define HG_REV \"$(shell hg tip --template '{node|short}')\"" > $@
-	echo "#define HG_TAG \"$(shell hg tip --template '{tags}')\"" >> $@
+	echo "#define HG_REV \"$(shell hg id | awk '{print $$1;}')\"" > $@
+	echo "#define HG_TAG \"$(shell hg id | awk '{print $$2;}')\"" >> $@
 
