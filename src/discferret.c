@@ -544,7 +544,7 @@ int discferret_reg_peek(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr)
 	// Check the response code
 	switch (buf[0]) {
 		case FW_ERR_OK:
-			return buf[i];
+			return buf[1];
 		default:
 			return DISCFERRET_E_USB_ERROR;
 	}
