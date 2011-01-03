@@ -216,7 +216,7 @@ int discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *bloc
 int discferret_fpga_get_status(DISCFERRET_DEVICE_HANDLE *dh);
 
 /**
- * @brief	Load an RBF file into the DiscFerret's FPGA
+ * @brief	Load an RBF-format microcode image into the DiscFerret's FPGA
  * @param	dh		DiscFerret device handle.
  * @param	rbfdata	Pointer to RBF data, as read from the .RBF file.
  * @param	len		Length of the RBF data buffer.
@@ -226,6 +226,29 @@ int discferret_fpga_get_status(DISCFERRET_DEVICE_HANDLE *dh);
  * 			DISCFERRET_E_FPGA_NOT_CONFIGURED if FPGA rejected the config load.
  */
 int discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *rbfdata, size_t len);
+
+/**
+ * @brief	Read the contents of a DiscFerret FPGA register.
+ * @param	dh		DiscFerret device handle.
+ * @param	addr	Register address
+ * @returns Value of the register, or negative (one of the DISCFERRET_E_xxx constants) in case of error.
+ *
+ * Reads the current contents of the DiscFerret FPGA register at the address
+ * specified by the addr parameter.
+ */
+int discferret_reg_peek(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr);
+
+/**
+ * @brief	Write a value to a DiscFerret FPGA register.
+ * @param	dh		DiscFerret device handle.
+ * @param	addr	Register address
+ * @param	data	Register value
+ * @returns DISCFERRET_E_OK, or negative (one of the DISCFERRET_E_xxx constants) in case of error.
+ *
+ * Writes the value in the data parameter to the DiscFerret FPGA register at
+ * the address specified in the addr parameter.
+ */
+int discferret_reg_poke(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr, unsigned char data);
 
 #ifdef __cplusplus
 }

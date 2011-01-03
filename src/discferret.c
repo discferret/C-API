@@ -609,3 +609,65 @@ int discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *rbfdat
 	// Load complete, return OK status.
 	return DISCFERRET_E_OK;
 }
+
+int discferret_reg_peek(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr)
+{
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure device handle is not NULL
+	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
+
+	unsigned char buf[64];
+	int i = 0, a, r;
+	// Command code and length
+	buf[i++] = CMD_FPGA_PEEK;
+	buf[i++] = addr >> 8;
+	buf[i++] = addr & 0xff;
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_OUT, buf, i, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != i)) return DISCFERRET_E_USB_ERROR;
+
+	// Read the response code and data byte
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, buf, 2, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+
+	// Check the response code
+	switch (buf[0]) {
+		case FW_ERR_OK:
+			return buf[i];
+		default:
+			return DISCFERRET_E_USB_ERROR;
+	}
+}
+
+int discferret_reg_poke(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr, unsigned char data)
+{
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure device handle is not NULL
+	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
+
+	unsigned char buf[64];
+	int i = 0, a, r;
+	// Command code and length
+	buf[i++] = CMD_FPGA_POKE;
+	buf[i++] = addr >> 8;
+	buf[i++] = addr & 0xff;
+	buf[i++] = data;
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_OUT, buf, i, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != i)) return DISCFERRET_E_USB_ERROR;
+
+	// Read the response code and data byte
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, buf, 1, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+
+	// Check the response code
+	switch (buf[0]) {
+		case FW_ERR_OK:
+			return DISCFERRET_E_OK;
+		default:
+			return DISCFERRET_E_USB_ERROR;
+	}
+}
+
