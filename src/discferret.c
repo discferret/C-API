@@ -640,4 +640,149 @@ int discferret_ram_addr_set(DISCFERRET_DEVICE_HANDLE *dh, unsigned long addr)
 	}
 }
 
+static int ramWrite_private(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len)
+{
+	unsigned char packet[65536+3];
+	size_t i = 0;
+	int r, a;
+
+	if (dh->has_fast_ram_access) {
+		// Fast Write can write up to 64K in a chunk
+		if (len > 65536) return DISCFERRET_E_BAD_PARAMETER;
+		packet[i++] = CMD_RAM_WRITE_FAST;
+		packet[i++] = (len-1) & 0xff;
+		packet[i++] = (len-1) >> 8;
+	} else {
+		// No FAST WRITE support, max 64 bytes less header
+		if (len > (64-3)) return DISCFERRET_E_BAD_PARAMETER;
+		packet[i++] = CMD_RAM_WRITE;
+		packet[i++] = len;
+		packet[i++] = len >> 8;
+	}
+
+	// Append data block to packet buffer
+	memcpy(&packet[i], block, len);
+	i += len;
+
+	// Send the packet
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_OUT, packet, i, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != i)) return DISCFERRET_E_USB_ERROR;
+
+	// Read the response code
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, packet, 1, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+
+	// Check the response code
+	switch (packet[0]) {
+		case FW_ERR_OK:
+			return DISCFERRET_E_OK;
+		default:
+			return DISCFERRET_E_USB_ERROR;
+	}
+}
+
+int discferret_ram_write(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len)
+{
+	size_t blksz, pos, i;
+	int resp;
+
+	if (dh->has_fast_ram_access)
+		// Note that Fast Write can send 65536 bytes, but this involves sending
+		// a final packet with only 3 bytes in it, which is a bit wasteful.
+		// So instead we send less data, but fill all the packets we send.
+		blksz = 65536-3;
+	else
+		// no Fast Write support, max 64 bytes in a packet, less 3 byte header
+		blksz = 64-3;
+
+	pos = 0;
+	while (pos < len) {
+		// Calculate largest possible block size
+		i = ((len - pos) > blksz) ? blksz : (len - pos);
+		// Send the data block
+		resp = ramWrite_private(dh, &block[pos], i);
+		if (resp != DISCFERRET_E_OK) return resp;
+		// update read pointer
+		pos += i;
+	}
+
+	return DISCFERRET_E_OK;
+}
+
+static int ramRead_private(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len)
+{
+	unsigned char packet[65536+3];
+	size_t i = 0;
+	int r, a;
+
+	if (dh->has_fast_ram_access) {
+		// Fast Read can read up to 64K in a chunk
+		if (len > 65536) return DISCFERRET_E_BAD_PARAMETER;
+		packet[i++] = CMD_RAM_READ_FAST;
+		packet[i++] = (len-1) & 0xff;
+		packet[i++] = (len-1) >> 8;
+	} else {
+		// No FAST READ support, max 64 bytes less header
+		if (len > (64-1)) return DISCFERRET_E_BAD_PARAMETER;
+		packet[i++] = CMD_RAM_READ;
+		packet[i++] = len;
+		packet[i++] = len >> 8;
+	}
+
+	// Send the command packet
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_OUT, packet, i, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != i)) return DISCFERRET_E_USB_ERROR;
+
+	if (dh->has_fast_ram_access) {
+		// Fast Read: read the data block
+		r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, packet, len, &a, USB_TIMEOUT);
+		if ((r != 0) || (a != len)) return DISCFERRET_E_USB_ERROR;
+
+		// Copy data block into user buffer
+		memcpy(block, packet, len);
+
+		return DISCFERRET_E_OK;
+	} else {
+		// Slow Read: read the response code and data block
+		r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, packet, len+1, &a, USB_TIMEOUT);
+		if ((r != 0) || (a != (len+1))) return DISCFERRET_E_USB_ERROR;
+
+		// Copy data block into user buffer
+		memcpy(block, &packet[1], len);
+
+		// Check the response code
+		switch (packet[0]) {
+			case FW_ERR_OK:
+				return DISCFERRET_E_OK;
+			default:
+				return DISCFERRET_E_USB_ERROR;
+		}
+	}
+}
+
+int discferret_ram_read(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len)
+{
+	size_t blksz, pos, i;
+	int resp;
+
+	if (dh->has_fast_ram_access)
+		// Device has Fast Read support, 64K max packet size
+		blksz = 65536;
+	else
+		// no Fast Read support, max 64 bytes in a packet, less 1-byte header
+		blksz = 64-1;
+
+	pos = 0;
+	while (pos < len) {
+		// Calculate largest possible block size
+		i = ((len - pos) > blksz) ? blksz : (len - pos);
+		// Read the data block
+		resp = ramRead_private(dh, &block[pos], i);
+		if (resp != DISCFERRET_E_OK) return resp;
+		// update read pointer
+		pos += i;
+	}
+
+	return DISCFERRET_E_OK;
+}
 // vim: ts=4

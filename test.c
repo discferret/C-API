@@ -62,11 +62,11 @@ int main(void)
 	free(rbfdata);
 
 	// get ram addr
-	printf("get ram addr: %d\n", discferret_ram_addr_get(devh));
+	printf("get ram addr: %ld\n", discferret_ram_addr_get(devh));
 	printf("set ram addr 1234: %d\n", discferret_ram_addr_set(devh, 1234));
-	printf("get ram addr: %d\n", discferret_ram_addr_get(devh));
+	printf("get ram addr: %ld\n", discferret_ram_addr_get(devh));
 	printf("set ram addr 0: %d\n", discferret_ram_addr_set(devh, 0));
-	printf("get ram addr: %d\n", discferret_ram_addr_get(devh));
+	printf("get ram addr: %ld\n", discferret_ram_addr_get(devh));
 
 	// register poke/peek
 	printf("poke scratchpad DA: %d\n", discferret_reg_poke(devh, DISCFERRET_R_SCRATCHPAD, 0xDA));
@@ -75,6 +75,23 @@ int main(void)
 
 	printf("peek ticker 1: %02X\n", discferret_reg_peek(devh, DISCFERRET_R_CLOCK_TICKER));
 	printf("peek ticker 2: %02X\n", discferret_reg_peek(devh, DISCFERRET_R_CLOCK_TICKER));
+
+	unsigned char buf[8];
+	printf("set ram addr 0: %d\n", discferret_ram_addr_set(devh, 0));
+	printf("ram read 8 bytes: %d\n", discferret_ram_read(devh, buf, 8));
+	printf("buffer: ");
+	for (i=0; i<8; i++) printf("%02X ", buf[i]);
+	printf("\n");
+
+	printf("set ram addr 0: %d\n", discferret_ram_addr_set(devh, 0));
+	for (i=0; i<8; i++) buf[i] = i;
+	printf("ram write 8 bytes: %d\n", discferret_ram_write(devh, buf, 8));
+
+	printf("set ram addr 0: %d\n", discferret_ram_addr_set(devh, 0));
+	printf("ram read 8 bytes: %d\n", discferret_ram_read(devh, buf, 8));
+	printf("buffer: ");
+	for (i=0; i<8; i++) printf("%02X ", buf[i]);
+	printf("\n");
 
 	printf("close: %d\n", discferret_close(devh));
 	printf("done: %d\n", discferret_done());
