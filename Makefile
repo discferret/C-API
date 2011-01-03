@@ -4,7 +4,7 @@ SOLIB=libdiscferret.so
 SONAME=$(SOLIB).1
 SOVERS=$(SONAME).0
 
-VERSION=1.0
+VERSION=1.0r1
 
 OBJS=discferret.o
 OBJS_SO=$(addprefix obj_so/,$(OBJS))
