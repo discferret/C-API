@@ -252,10 +252,47 @@ int discferret_reg_peek(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr);
  */
 int discferret_reg_poke(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr, unsigned char data);
 
+/**
+ * @brief	Get current value of the Acquisition RAM address pointer.
+ * @param	dh		DiscFerret device handle.
+ * @returns	Current address, or negative (one of the DISCFERRET_E_xxx constants) in case of error.
+ *
+ * Retrieves the current value of the DiscFerret's memory address pointer.
+ */
 long discferret_ram_addr_get(DISCFERRET_DEVICE_HANDLE *dh);
+
+/**
+ * @brief	Set Acquisition RAM address pointer.
+ * @param	dh		DiscFerret device handle.
+ * @param	addr	Address pointer value.
+ * @returns	Current address, or negative (one of the DISCFERRET_E_xxx constants) in case of error.
+ *
+ * Sets the DiscFerret's memory address pointer to the value passed in the addr parameter.
+ */
 int discferret_ram_addr_set(DISCFERRET_DEVICE_HANDLE *dh, unsigned long addr);
 
+/**
+ * @brief	Write a block of data to Acquisition RAM.
+ * @param	dh		DiscFerret device handle.
+ * @param	block	Data block to write.
+ * @param	len		Size of data block.
+ *
+ * Writes a block of data to the DiscFerret's acquisition RAM, at the address
+ * in the address pointer. The value of the address pointer can be read using
+ * discferret_ram_addr_get(), or set using discferret_ram_addr_set().
+ */
 int discferret_ram_write(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len);
+
+/**
+ * @brief	Read a block of data from Acquisition RAM.
+ * @param	dh		DiscFerret device handle.
+ * @param	block	Pointer to data buffer.
+ * @param	len		Number of bytes to read.
+ *
+ * Reads a block of data from the DiscFerret's acquisition RAM, at the address
+ * set in the address pointer. The value of the address pointer can be read
+ * using discferret_ram_addr_get(), or set using discferret_ram_addr_set().
+ */
 int discferret_ram_read(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len);
 
 #ifdef __cplusplus
