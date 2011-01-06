@@ -93,6 +93,8 @@ int main(void)
 	for (i=0; i<8; i++) printf("%02X ", buf[i]);
 	printf("\n");
 
+	printf("get status: %ld\n", discferret_get_status(devh));
+
 	printf("close: %d\n", discferret_close(devh));
 	printf("done: %d\n", discferret_done());
 

@@ -820,4 +820,22 @@ int discferret_ram_read(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size
 
 	return DISCFERRET_E_OK;
 }
+
+long discferret_get_status(DISCFERRET_DEVICE_HANDLE *dh)
+{
+	int rva, rvb;
+
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure device handle is not NULL
+	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
+
+	// Read the status registers
+	if ((rva = discferret_reg_peek(dh, DISCFERRET_R_STATUS1)) < 0) return rva;
+	if ((rvb = discferret_reg_peek(dh, DISCFERRET_R_STATUS2)) < 0) return rvb;
+
+	return (rvb << 8) + rva;
+}
+
 // vim: ts=4
