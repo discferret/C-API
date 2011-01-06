@@ -25,7 +25,7 @@ all:	output/$(SOVERS) output/test doc
 
 install:	all
 	mkdir -p $(PREFIX)/lib/discferret $(PREFIX)/include/discferret
-	cp output/libdiscferret.so $(PREFIX)/lib
+	cp output/$(SOVERS) $(PREFIX)/lib
 	cp src/discferret.h $(PREFIX)/include/discferret
 	cp src/discferret_registers.h $(PREFIX)/include/discferret
 	echo
@@ -36,16 +36,12 @@ doc:
 	@echo "### Building documentation"
 	doxygen > doc/doxygen.log
 
-output/$(SOLIB):	$(OBJS_SO)
+output/$(SOVERS):	$(OBJS_SO)
 	@echo
 	@echo "### Linking shared library"
 	$(LD) $(LDFLAGS) -shared -soname $(SONAME) -o $@ $<
 
-output/$(SONAME):	output/$(SOLIB)
-	-rm $@
-	ln -s $(notdir $<) $@
-
-output/$(SOVERS):	output/$(SONAME)
+output/$(SONAME):	output/$(SOVERS)
 	-rm $@
 	ln -s $(notdir $<) $@
 
