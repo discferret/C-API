@@ -41,11 +41,12 @@ output/$(SOVERS):	$(OBJS_SO)
 	@echo "### Linking shared library"
 	$(LD) $(LDFLAGS) -shared -soname $(SONAME) -o $@ $<
 
-output/$(SONAME):	output/$(SOVERS)
-	-rm $@
-	ln -s $(notdir $<) $@
+output/$(SONAME) output/$(SOLIB):	output/$(SOVERS)
+	-rm output/$(SONAME) output/$(SOLIB)
+	ln -s $(notdir $<) output/$(SONAME)
+	ln -s $(notdir $<) output/$(SOLIB)
 
-output/test:	test/test.c output/$(SONAME).0 src/discferret.h src/discferret_version.h
+output/test:	test/test.c output/$(SONAME) src/discferret.h src/discferret_version.h
 	@echo
 	@echo "### Building test application"
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -Loutput -ldiscferret -lusb-1.0 $<
