@@ -42,9 +42,11 @@ output/$(SOLIB):	$(OBJS_SO)
 	$(LD) $(LDFLAGS) -shared -soname $(SONAME) -o $@ $<
 
 output/$(SONAME):	output/$(SOLIB)
+	-rm $@
 	ln -s $(notdir $<) $@
 
 output/$(SOVERS):	output/$(SONAME)
+	-rm $@
 	ln -s $(notdir $<) $@
 
 output/test:	test/test.c output/$(SONAME).0 src/discferret.h src/discferret_version.h
