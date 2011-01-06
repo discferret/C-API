@@ -51,12 +51,21 @@ int main(void)
 	printf("poll fpga status: %d\n", discferret_fpga_get_status(devh));
 
 	// load fpga
-	FILE *fp = fopen("microcode.rbf", "rb");
+	FILE *fp = fopen("../microcode.rbf", "rb");
+	if (fp == NULL) {
+		printf("ERROR LOADING MICROCODE FILE. ABORT.\n");
+		discferret_close(devh);
+		return -1;
+	}
 	fseek(fp, 0, SEEK_END);
 	size_t len = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 	unsigned char *rbfdata = malloc(len);
-	fread(rbfdata, 1, len, fp);
+	if (fread(rbfdata, 1, len, fp) != len) {
+		printf("ERROR LOADING MICROCODE FILE. ABORT.\n");
+		discferret_close(devh);
+		return -1;
+	}
 	printf("load fpga mcode: %d\n", discferret_fpga_load_rbf(devh, rbfdata, len));
 	printf("poll fpga status: %d\n", discferret_fpga_get_status(devh));
 	free(rbfdata);
@@ -83,9 +92,12 @@ int main(void)
 	for (i=0; i<8; i++) printf("%02X ", buf[i]);
 	printf("\n");
 
+	printf("get status: %ld\n", discferret_get_status(devh));
 	printf("set ram addr 0: %d\n", discferret_ram_addr_set(devh, 0));
+	printf("get status: %ld\n", discferret_get_status(devh));
 	for (i=0; i<8; i++) buf[i] = i;
 	printf("ram write 8 bytes: %d\n", discferret_ram_write(devh, buf, 8));
+	printf("get status: %ld\n", discferret_get_status(devh));
 
 	printf("set ram addr 0: %d\n", discferret_ram_addr_set(devh, 0));
 	printf("ram read 8 bytes: %d\n", discferret_ram_read(devh, buf, 8));
