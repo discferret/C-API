@@ -199,6 +199,7 @@ int discferret_find_devices(DISCFERRET_DEVICE **devlist)
 					int len = libusb_get_string_descriptor_ascii(dh, desc.iSerialNumber, devlist[devcount]->serialnumber, sizeof(devlist[devcount]->serialnumber));
 					if (len <= 0) devlist[devcount]->serialnumber[0] = '\0';
 				}
+
 				// Close the device
 				libusb_close(dh);
 			}
@@ -213,6 +214,16 @@ int discferret_find_devices(DISCFERRET_DEVICE **devlist)
 
 	// Return number of devices we found
 	return devcount;
+}
+
+void discferret_devlist_free(DISCFERRET_DEVICE **devlist)
+{
+	// Make sure devlist is non-null
+	if (devlist == NULL) return;
+	if ((*devlist) == NULL) return;
+
+	// Free the device list
+	free(*devlist);
 }
 
 int discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh)

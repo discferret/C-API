@@ -117,6 +117,14 @@ DISCFERRET_ERROR discferret_done(void);
 int discferret_find_devices(DISCFERRET_DEVICE **devlist);
 
 /**
+ * @brief	Free a device list.
+ * @param	devlist		Pointer to a DISCFERRET_DEVICE* block.
+ *
+ * Frees the device list created by discferret_find_devices.
+ */
+void discferret_devlist_free(DISCFERRET_DEVICE **devlist);
+
+/**
  * @brief	Open a DiscFerret with a given serial number
  * @param	serialnum	Serial number of the DiscFerret unit to open.
  * @param	dh			Pointer to a pointer to a DiscFerret Device Handle,
