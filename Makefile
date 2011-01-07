@@ -26,8 +26,8 @@ all:	output/$(SOLIB) output/test doc
 install:	all
 	mkdir -p $(PREFIX)/lib $(PREFIX)/include/discferret
 	cp output/$(SOVERS) $(PREFIX)/lib
-	ln -s $(SOVERS) $(PREFIX)/lib/$(SONAME)
-	ln -s $(SONAME) $(PREFIX)/lib/$(SOLIB)
+	ln -sf $(SOVERS) $(PREFIX)/lib/$(SONAME)
+	ln -sf $(SONAME) $(PREFIX)/lib/$(SOLIB)
 	cp src/discferret.h $(PREFIX)/include/discferret
 	cp src/discferret_registers.h $(PREFIX)/include/discferret
 	@echo
