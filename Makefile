@@ -21,15 +21,17 @@ CFLAGS=-O2 -Wall -pedantic -std=c99 -DNDEBUG
 LDFLAGS=-s
 endif
 
-all:	output/$(SOVERS) output/test doc
+all:	output/$(SOLIB) output/test doc
 
 install:	all
-	mkdir -p $(PREFIX)/lib/discferret $(PREFIX)/include/discferret
+	mkdir -p $(PREFIX)/lib $(PREFIX)/include/discferret
 	cp output/$(SOVERS) $(PREFIX)/lib
+	ln -s $(SOVERS) $(PREFIX)/lib/$(SONAME)
+	ln -s $(SONAME) $(PREFIX)/lib/$(SOLIB)
 	cp src/discferret.h $(PREFIX)/include/discferret
 	cp src/discferret_registers.h $(PREFIX)/include/discferret
-	echo
-	echo "Installation complete. Now run ldconfig."
+	@echo
+	@echo "Installation complete. Now run ldconfig."
 
 doc:
 	@echo
