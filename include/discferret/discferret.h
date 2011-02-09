@@ -82,7 +82,7 @@ typedef enum {
 	DISCFERRET_E_OUT_OF_MEMORY,				///< Out of memory
 	DISCFERRET_E_NO_MATCH,					///< Unable to find a device matching the specified search criteria
 	DISCFERRET_E_HARDWARE_ERROR,			///< Hardware error (malfunction)
-	DISCFERRET_E_FPGA_NOT_CONFIGURED,		///< FPGA not configured (microcode not loaded)
+	DISCFERRET_E_FPGA_NOT_CONFIGURED		///< FPGA not configured (microcode not loaded)
 } DISCFERRET_ERROR;
 
 /**

@@ -4,7 +4,7 @@ SOLIB=libdiscferret.so
 SONAME=$(SOLIB).2
 SOVERS=$(SONAME).0
 
-VERSION=1.0r6
+VERSION=1.0r7
 
 PREFIX?=/usr/local
 
