@@ -85,6 +85,15 @@ enum {
 	/// TEST REGISTER: Clock ticker (read only, value increments at PLL clock rate)
 	DISCFERRET_R_CLOCK_TICKER_PLL		= 0x35,
 
+	/**
+	 * Index frequency measurement in 250us counts, high byte.
+	 * @note Reading this register latches the low byte of the counter into DISCFERRET_R_INDEX_FREQ_LOW.
+	 *       Reading DISCFERRET_R_INDEX_FREQ_LOW before DISCFERRET_R_INDEX_FREQ_HIGH will produce an erroneous result.
+	 */
+	DISCFERRET_R_INDEX_FREQ_HIGH		= 0x40,
+	/// Index frequency, low byte -- see DISCFERRET_R_INDEX_FREQ_HIGH.
+	DISCFERRET_R_INDEX_FREQ_LOW			= 0x41,
+
 	/// HSIO: pin direction register
 	DISCFERRET_R_HSIO_DIR				= 0xE0,
 	/// HSIO: pin settings register
