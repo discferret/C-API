@@ -304,14 +304,11 @@ int discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh)
 					(*dh)->dh = ldh;
 
 					// Pull the firmware version and set the capability flags
-					DISCFERRET_DEVICE_INFO devinfo;
-					if (discferret_get_info(*dh, &devinfo) != DISCFERRET_E_OK) {
+					if (discferret_update_capabilities(*dh) != DISCFERRET_E_OK) {
 						libusb_close(ldh);
 						match = false;
 						continue;
 					}
-					(*dh)->has_fast_ram_access = (devinfo.firmware_ver >= 0x001B);
-
 					break;
 				}
 			}
@@ -348,6 +345,48 @@ int discferret_close(DISCFERRET_DEVICE_HANDLE *dh)
 
 	// Free allocated memory
 	free(dh);
+
+	return DISCFERRET_E_OK;
+}
+
+int discferret_update_capabilities(DISCFERRET_DEVICE_HANDLE *dh)
+{
+	int err;
+	DISCFERRET_DEVICE_INFO devinfo;
+
+	if ((err = discferret_get_info(dh, &devinfo)) != DISCFERRET_E_OK) {
+		return err;
+	}
+
+	// Set default values
+	dh->has_fast_ram_access = false;
+	dh->has_index_freq_sense = false;
+	dh->has_index_freq_avail_flag = false;
+	dh->index_freq_multiplier = 0;
+
+	// Firmware 001B added Fast RAM Access
+	if (devinfo.firmware_ver >= 0x001B) {
+		dh->has_fast_ram_access = true;
+	}
+
+	// Do we recognise this type of microcode?
+	if (devinfo.microcode_type == 0xDD55) {
+		// Yes -- it's the Baseline microcode.
+		// Microcode 001F adds index frequency measurement at a low resolution
+		if (devinfo.microcode_ver >= 0x001F) {
+			dh->has_index_freq_sense = true;
+			// 250us per step
+			dh->index_freq_multiplier = 250.0e-6;
+		}
+
+		// Microcode 0020 improves index freq measurement resolution and adds
+		// a 'new index measurement' flag.
+		if (devinfo.microcode_ver >= 0x0020) {
+			// 10us per step
+			dh->index_freq_multiplier = 10.0e-6;
+			dh->has_index_freq_avail_flag = true;
+		}
+	}
 
 	return DISCFERRET_E_OK;
 }
@@ -542,8 +581,8 @@ int discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *rbfdat
 	resp = discferret_fpga_get_status(dh);
 	if (resp != DISCFERRET_E_OK) return DISCFERRET_E_FPGA_NOT_CONFIGURED;
 
-	// Load complete, return OK status.
-	return DISCFERRET_E_OK;
+	// Load complete. Update the capability flags.
+	return discferret_update_capabilities(dh);
 }
 
 int discferret_reg_peek(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr)
@@ -849,4 +888,51 @@ long discferret_get_status(DISCFERRET_DEVICE_HANDLE *dh)
 	return (rvb << 8) + rva;
 }
 
+int discferret_get_index_time(DISCFERRET_DEVICE_HANDLE *dh, bool wait, double *timeval)
+{
+	int err;
+	uint16_t i;
+
+	// Make sure we have index frequency measurement support
+	if (!dh->has_index_freq_sense) {
+		return DISCFERRET_E_NOT_SUPPORTED;
+	}
+
+	// Wait for a new measurement if we've been asked to do so
+	if (wait && dh->has_index_freq_avail_flag) {
+		int x = 0;
+		do {
+			x = discferret_get_status(dh);
+		} while ((x >= 0) && ((x & DISCFERRET_STATUS_NEW_INDEX_MEAS) == 0));
+		if (x < 0) return x;
+	}
+
+	// Get the time measurement
+	err = discferret_reg_peek(dh, DISCFERRET_R_INDEX_FREQ_HIGH);
+	if (err < 0) return err;
+	i = ((uint16_t)err) << 8;
+	err = discferret_reg_peek(dh, DISCFERRET_R_INDEX_FREQ_LOW);
+	if (err < 0) return err;
+	i = i + (err & 0xff);
+
+	// Convert number of counts into a real time value
+	*timeval = ((double)i) * dh->index_freq_multiplier;
+
+	return DISCFERRET_E_OK;
+}
+
+int discferret_get_index_frequency(DISCFERRET_DEVICE_HANDLE *dh, bool wait, double *freqval)
+{
+	double tm;
+	int err;
+
+	// Get time taken for one revolution
+	err = discferret_get_index_time(dh, wait, &tm);
+	if (err < 0) return err;
+
+	// Calculate rotation speed in RPM
+	*freqval = 60.0 / tm;
+
+	return DISCFERRET_E_OK;
+}
 // vim: ts=4

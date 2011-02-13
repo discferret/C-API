@@ -171,6 +171,8 @@ enum {
 
 /// DiscFerret STATUS bits
 enum {
+	/// New index frequency measurement available
+	DISCFERRET_STATUS_NEW_INDEX_MEAS	= 0x08,
 	/// Bit Mask for STATUS_ACQ_xxx bits
 	DISCFERRET_STATUS_ACQSTATUS_MASK	= 0x07,
 	/// Currently writing to disc

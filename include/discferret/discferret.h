@@ -55,6 +55,9 @@ typedef struct {
 typedef struct {
 	struct libusb_device_handle *dh;	///< Libusb device handle.
 	bool	has_fast_ram_access;		///< True if device supports Fast RAM R/W operations
+	bool	has_index_freq_sense;		///< True if device supports index frequncy measurement
+	bool	has_index_freq_avail_flag;	///< True if device has the "new index measurement available" flag bit
+	double	index_freq_multiplier;		///< Index frequency multiplier
 } DISCFERRET_DEVICE_HANDLE;
 
 /**
@@ -82,7 +85,8 @@ typedef enum {
 	DISCFERRET_E_OUT_OF_MEMORY,				///< Out of memory
 	DISCFERRET_E_NO_MATCH,					///< Unable to find a device matching the specified search criteria
 	DISCFERRET_E_HARDWARE_ERROR,			///< Hardware error (malfunction)
-	DISCFERRET_E_FPGA_NOT_CONFIGURED		///< FPGA not configured (microcode not loaded)
+	DISCFERRET_E_FPGA_NOT_CONFIGURED,		///< FPGA not configured (microcode not loaded)
+	DISCFERRET_E_NOT_SUPPORTED				///< Feature not supported by this firmware/microcode version
 } DISCFERRET_ERROR;
 
 /**
@@ -166,6 +170,20 @@ int discferret_open_first(DISCFERRET_DEVICE_HANDLE **dh);
  * after the application is finished with the DiscFerret.
  */
 int discferret_close(DISCFERRET_DEVICE_HANDLE *dh);
+
+/**
+ * @brief	Update a DiscFerret device handle's local copy of the device capability block.
+ * @param	dh		DiscFerret device handle.
+ *
+ * Libdiscferret keeps a local copy of the capability data for a DiscFerret
+ * unit. This capability data is updated automatically when the device is
+ * opened, or when new microcode is uploaded.
+ *
+ * This function allows the capability data to be updated manually. Normally
+ * this is not necessary, but may prove necessary if microcode is loaded using
+ * the block-write functions (which is NOT recommended).
+ */
+int discferret_update_capabilities(DISCFERRET_DEVICE_HANDLE *dh);
 
 /**
  * @brief	Retrieve a DiscFerret's unique ID and firmware version information.
@@ -323,6 +341,41 @@ int discferret_ram_read(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size
  * Reads and returns the current value of the DiscFerret's status register.
  */
 long discferret_get_status(DISCFERRET_DEVICE_HANDLE *dh);
+
+/**
+ * @brief	Measure the time taken for the last complete revolution of the disc
+ * @param	dh		DiscFerret device handle.
+ * @param	wait	If true, then this function will wait for a new measurement before returning it.
+ * 					If false, the measurement currently in the holding register will be returned.
+ * @param	timeval	Pointer to a double, which will receive the time value, in seconds.
+ * @returns	DISCFERRET_E_OK on success, or one of the DISCFERRET_E_xxx constants in case of error.
+ *
+ * This function measures the amount of time which has elapsed between the
+ * most recent index pulse, and the one immediately preceding it. This
+ * value is proportional to the rotational speed of the disc.
+ */
+int discferret_get_index_time(DISCFERRET_DEVICE_HANDLE *dh, bool wait, double *timeval);
+
+/**
+ * @brief	Measure the rotational speed of the disc.
+ * @param	dh		DiscFerret device handle.
+ * @param	wait	If true, then this function will wait for a new measurement before returning it.
+ * 					If false, the measurement currently in the holding register will be returned.
+ * @param	freqval	Pointer to a double, which will receive the rotational speed value, in RPM.
+ * @returns	DISCFERRET_E_OK on success, or one of the DISCFERRET_E_xxx constants in case of error.
+ *
+ * This function measures the amount of time which has elapsed between the
+ * most recent index pulse, and the one immediately preceding it. This
+ * value is then fed into a conversion function which calculates the
+ * current rotational speed of the disc in the drive, in revolutions per
+ * minute (RPM).
+ *
+ * A typical disc drive rotates at either 300 or 360 RPM. The measurement
+ * range of this function is 90 RPM to 6,000,000 RPM on Microcode 0020, or
+ * 4 RPM to 240,000 RPM on Microcode 001F. While Microcode 001F has a
+ * narrower range, it also has a much lower accuracy and timing resolution.
+ */
+int discferret_get_index_frequency(DISCFERRET_DEVICE_HANDLE *dh, bool wait, double *freqval);
 
 #ifdef __cplusplus
 }
