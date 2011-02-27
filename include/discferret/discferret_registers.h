@@ -189,7 +189,7 @@ enum {
 	DISCFERRET_STATUS_TRACK0			= 0x4000,
 	/// 1=Disc write protected (pin 28)
 	DISCFERRET_STATUS_WRITE_PROTECT		= 0x2000,
-	/// 1=Disc changed (pin 2)
+	/// 1=Disc changed (pin 34)
 	DISCFERRET_STATUS_DISC_CHANGE		= 0x1000,
 	/// 1=Density pin state (pin 2)
 	DISCFERRET_STATUS_DENSITY			= 0x0800,
