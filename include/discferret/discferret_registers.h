@@ -171,6 +171,8 @@ enum {
 
 /// DiscFerret STATUS bits
 enum {
+	/// Last seek operation terminated because track 0 was reached
+	DISCFERRET_STATUS_TRACK0_HIT		= 0x10,
 	/// New index frequency measurement available
 	DISCFERRET_STATUS_NEW_INDEX_MEAS	= 0x08,
 	/// Bit Mask for STATUS_ACQ_xxx bits
