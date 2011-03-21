@@ -1,10 +1,10 @@
 .PHONY:	all install clean doc
 
 SOLIB=libdiscferret.so
-SONAME=$(SOLIB).2
+SONAME=$(SOLIB).3
 SOVERS=$(SONAME).0
 
-VERSION=1.0r7
+VERSION=1.1r1
 
 PREFIX?=/usr/local
 
