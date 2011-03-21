@@ -309,6 +309,9 @@ int discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh)
 						match = false;
 						continue;
 					}
+
+					// Set the initial track number to "unknown"
+					(*dh)->current_track = -1;
 					break;
 				}
 			}
@@ -363,6 +366,7 @@ int discferret_update_capabilities(DISCFERRET_DEVICE_HANDLE *dh)
 	dh->has_index_freq_sense = false;
 	dh->has_index_freq_avail_flag = false;
 	dh->index_freq_multiplier = 0;
+	dh->has_track0_flag = false;
 
 	// Firmware 001B added Fast RAM Access
 	if (devinfo.firmware_ver >= 0x001B) {
@@ -385,6 +389,11 @@ int discferret_update_capabilities(DISCFERRET_DEVICE_HANDLE *dh)
 			// 10us per step
 			dh->index_freq_multiplier = 10.0e-6;
 			dh->has_index_freq_avail_flag = true;
+		}
+
+		// Microcode 0021 adds a 'track0 reached during seek' flag
+		if (devinfo.microcode_ver >= 0x0021) {
+			dh->has_track0_flag = true;
 		}
 	}
 
@@ -935,4 +944,139 @@ int discferret_get_index_frequency(DISCFERRET_DEVICE_HANDLE *dh, bool wait, doub
 
 	return DISCFERRET_E_OK;
 }
+
+int discferret_seek_set_rate(DISCFERRET_DEVICE_HANDLE *dh, unsigned long steprate_us)
+{
+	unsigned long srval = (steprate_us / 250);
+
+	// seek rate counter must be <= 255
+	if (srval > 255)
+		return DISCFERRET_E_BAD_PARAMETER;
+
+	return discferret_reg_poke(dh, DISCFERRET_R_STEP_RATE, srval);
+}
+
+int discferret_seek_recalibrate(DISCFERRET_DEVICE_HANDLE *dh, unsigned long maxsteps)
+{
+	unsigned long stepcnt = maxsteps;
+
+	// max number of steps must be at least 1
+	if (maxsteps < 1) {
+		return DISCFERRET_E_BAD_PARAMETER;
+	}
+
+	// seek back, abort if we hit track 0
+	bool track0_hit = false;
+	while ((stepcnt > 0) && (!track0_hit)) {
+		// figure out how many steps we can move
+		unsigned long thisstep = (stepcnt > DISCFERRET_STEP_COUNT_MASK) ? DISCFERRET_STEP_COUNT_MASK : stepcnt;
+		stepcnt -= thisstep;
+
+		// now move the head by that number of steps
+		discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_TOWARDS_ZERO | thisstep);
+
+		// wait for the seek to complete
+		long status;
+		do {
+			// get discferret status
+			status = discferret_get_status(dh);
+
+			// if get_status returns an error code, pass it back to the caller
+			if (status < 0)
+				return status;
+		} while ((status & DISCFERRET_STATUS_STEPPING) != 0);
+
+		// did we reach track 0?
+		if (dh->has_track0_flag) {
+			if ((status & (DISCFERRET_STATUS_TRACK0_HIT | DISCFERRET_STATUS_TRACK0)) != 0)
+				track0_hit = true;
+		} else {
+			if ((status & DISCFERRET_STATUS_TRACK0) != 0)
+				track0_hit = true;
+		}
+	}
+
+	// we're now either at track 0, or somewhere between last_known_track and track 0...
+	// if we didn't hit T0, then the recalibrate failed.
+	if (track0_hit) {
+		dh->current_track = 0;
+		return DISCFERRET_E_OK;
+	} else {
+		dh->current_track = -1;
+		return DISCFERRET_E_RECAL_FAILED;
+	}
+}
+
+int discferret_seek_relative(DISCFERRET_DEVICE_HANDLE *dh, long numsteps)
+{
+	unsigned long stepcnt = (numsteps < 0) ? (-numsteps) : numsteps;
+
+	// max number of steps must be at least 1
+	if (stepcnt < 1) {
+		return DISCFERRET_E_BAD_PARAMETER;
+	}
+
+	// seek, abort if we hit track 0
+	bool track0_hit = false;
+	while ((stepcnt > 0) && (!track0_hit)) {
+		// figure out how many steps we can move
+		unsigned long thisstep = (stepcnt > DISCFERRET_STEP_COUNT_MASK) ? DISCFERRET_STEP_COUNT_MASK : stepcnt;
+		stepcnt -= thisstep;
+
+		// now move the head by that number of steps
+		if (numsteps < 0) {
+			// seek towards zero
+			discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_TOWARDS_ZERO | thisstep);
+		} else {
+			// seek away from zero
+			discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_AWAYFROM_ZERO | thisstep);
+		}
+
+		// wait for the seek to complete
+		long status;
+		do {
+			// get discferret status
+			status = discferret_get_status(dh);
+
+			// if get_status returns an error code, pass it back to the caller
+			if (status < 0)
+				return status;
+		} while ((status & DISCFERRET_STATUS_STEPPING) != 0);
+
+		// did we reach track 0?
+		if (dh->has_track0_flag) {
+			if ((status & (DISCFERRET_STATUS_TRACK0_HIT | DISCFERRET_STATUS_TRACK0)) != 0)
+				track0_hit = true;
+		} else {
+			if ((status & DISCFERRET_STATUS_TRACK0) != 0)
+				track0_hit = true;
+		}
+	}
+
+	// we're now either at track 0, or at the track we requested
+	if (track0_hit) {
+		// hit track 0
+		dh->current_track = 0;
+		return DISCFERRET_E_TRACK0_REACHED;
+	} else {
+		// didn't hit track 0; update track count accordingly
+		if (dh->current_track == -1) {
+			// current track number unknown, leave it like that.
+			return DISCFERRET_E_CURRENT_TRACK_UNKNOWN;
+		} else {
+			dh->current_track += numsteps;
+			return DISCFERRET_E_OK;
+		}
+	}
+}
+
+int discferret_seek_absolute(DISCFERRET_DEVICE_HANDLE *dh, unsigned long track)
+{
+	if (dh->current_track == -1)
+		return DISCFERRET_E_CURRENT_TRACK_UNKNOWN;
+
+	// track number is known. move the disc head.
+	return discferret_seek_relative(dh, track - dh->current_track);
+}
+
 // vim: ts=4

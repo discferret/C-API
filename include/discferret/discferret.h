@@ -57,7 +57,9 @@ typedef struct {
 	bool	has_fast_ram_access;		///< True if device supports Fast RAM R/W operations
 	bool	has_index_freq_sense;		///< True if device supports index frequncy measurement
 	bool	has_index_freq_avail_flag;	///< True if device has the "new index measurement available" flag bit
+	bool	has_track0_flag;			///< True if device has the "track 0 reached during seek" flag bit
 	double	index_freq_multiplier;		///< Index frequency multiplier
+	long	current_track;				///< Current track number
 } DISCFERRET_DEVICE_HANDLE;
 
 /**
@@ -86,7 +88,10 @@ typedef enum {
 	DISCFERRET_E_NO_MATCH,					///< Unable to find a device matching the specified search criteria
 	DISCFERRET_E_HARDWARE_ERROR,			///< Hardware error (malfunction)
 	DISCFERRET_E_FPGA_NOT_CONFIGURED,		///< FPGA not configured (microcode not loaded)
-	DISCFERRET_E_NOT_SUPPORTED				///< Feature not supported by this firmware/microcode version
+	DISCFERRET_E_NOT_SUPPORTED,				///< Feature not supported by this firmware/microcode version
+	DISCFERRET_E_RECAL_FAILED,				///< Recalibrate failed (track0 not reached after specified number of steps)
+	DISCFERRET_E_TRACK0_REACHED,			///< Track 0 reached during seek (informative)
+	DISCFERRET_E_CURRENT_TRACK_UNKNOWN		///< Current track not known before or after seek (need to Recalibrate the head)
 } DISCFERRET_ERROR;
 
 /**
@@ -376,6 +381,70 @@ int discferret_get_index_time(DISCFERRET_DEVICE_HANDLE *dh, bool wait, double *t
  * narrower range, it also has a much lower accuracy and timing resolution.
  */
 int discferret_get_index_frequency(DISCFERRET_DEVICE_HANDLE *dh, bool wait, double *freqval);
+
+/**
+ * @brief	Set the seek rate.
+ * @param	dh			DiscFerret device handle.
+ * @param	steprate_us	Desired seek rate in milliseconds per step.
+ * @returns	DISCFERRET_E_OK on success, or one of the DISCFERRET_E_xxx constants in case of error.
+ *
+ * This function sets the DiscFerret's step rate timer to produce seek pulses
+ * with a period of <i>steprate_ms</i> microseconds. This function must be
+ * called before any of the other <i>discferret_seek_*</i> functions.
+ *
+ * DISCFERRET_E_BAD_PARAMETER will be returned if the seek rate exceeds
+ * 63750 microseconds per step. The step rate has a resolution of 250
+ * microseconds.
+ */
+int discferret_seek_set_rate(DISCFERRET_DEVICE_HANDLE *dh, unsigned long steprate_us);
+
+/**
+ * @brief	Reposition the drive heads at track 0.
+ * @param	dh			DiscFerret device handle.
+ * @param	maxsteps	Maximum number of steps to move the head.
+ * @returns	DISCFERRET_E_OK on success, or one of the DISCFERRET_E_xxx constants in case of error.
+ *
+ * This function moves the disc head towards track zero, until either track
+ * zero is reached, or the head has moved <i>maxsteps</i> steps.
+ *
+ * DISCFERRET_E_BAD_PARAMETER will be returned if <i>maxsteps</i> is less
+ * than 1. DISCFERRET_E_RECAL_FAILED will be returned if track zero was not reached
+ * within <i>maxsteps</i> steps.
+ */
+int discferret_seek_recalibrate(DISCFERRET_DEVICE_HANDLE *dh, unsigned long maxsteps);
+
+/**
+ * @brief	Seek the drive heads relative to their current position.
+ * @param	dh			DiscFerret device handle.
+ * @param	numsteps	Number of steps; positive to seek towards higher-numbered
+ * 						tracks, negative to seek towards track zero.
+ *
+ * Seeks a specified number of steps in a given direction. If <i>numsteps</i>
+ * is less than zero, then the drive will seek towards track zero. If
+ * <i>numsteps</i> is greater than zero, then the drive will seek towards the
+ * highest-numbered track available on the drive.
+ *
+ * DISCFERRET_E_BAD_PARAMETER will be returned if <i>numsteps</i> is zero.
+ * DISCFERRET_E_TRACK0_REACHED will be returned if head reached track zero
+ * during the seek operation. DISCFERRET_E_CURRENT_TRACK_UNKNOWN will be
+ * returned if the current track number was unknown before the seek (and is
+ * still unknown to libdiscferret).
+ */
+int discferret_seek_relative(DISCFERRET_DEVICE_HANDLE *dh, long numsteps);
+
+/**
+ * @brief	Seek the drive heads to an absolute track.
+ * @param	dh			DiscFerret device handle.
+ * @param	track		Target track number.
+ *
+ * Seeks the drive heads to the track number specified in the <i>track</i>
+ * parameter.
+ *
+ * The drive head must be at a known location before calling this
+ * function. DISCFERRET_E_CURRENT_TRACK_UNKNOWN will be returned if this is
+ * not the case, and the seek operation will be aborted.
+ */
+int discferret_seek_absolute(DISCFERRET_DEVICE_HANDLE *dh, unsigned long track);
 
 #ifdef __cplusplus
 }
