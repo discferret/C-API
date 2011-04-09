@@ -39,6 +39,16 @@ extern "C" {
 #endif
 
 /**
+ * Microcode data -- in discferret_microcode.c
+ */
+
+/// DiscFerret microcode data
+extern const unsigned char discferret_microcode[];
+/// Length of DiscFerret microcode data
+extern const unsigned long discferret_microcode_length;
+
+
+/**
  * @brief	A structure to encapsulate information about a specific DiscFerret device.
  */
 typedef struct {

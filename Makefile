@@ -8,7 +8,7 @@ VERSION=1.1r1
 
 PREFIX?=/usr/local
 
-OBJS=discferret.o
+OBJS=discferret.o discferret_microcode.o
 OBJS_SO=$(addprefix obj_so/,$(OBJS))
 OBJS_A=$(addprefix obj_a/,$(OBJS))
 
@@ -64,6 +64,9 @@ clean:
 	-rm -f testapp
 	-rm -rf doc/html
 	-mkdir -p obj_so output doc
+
+src/discferret_microcode.c: microcode.rbf
+	srec_cat -Output $@ -C-Array discferret_microcode $< -Binary
 
 obj_so/%.o:	src/%.c
 	$(CC) -c -fPIC $(CFLAGS) -o $@ $<
