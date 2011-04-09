@@ -96,7 +96,7 @@ static unsigned char bitswap(unsigned char num)
 	return val;
 }
 
-int discferret_init(void)
+DISCFERRET_ERROR discferret_init(void)
 {
 	int r;
 
@@ -119,7 +119,7 @@ int discferret_init(void)
 	return DISCFERRET_E_OK;
 }
 
-int discferret_done(void)
+DISCFERRET_ERROR discferret_done(void)
 {
 	// Check if library has been initialised
 	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
@@ -226,7 +226,7 @@ void discferret_devlist_free(DISCFERRET_DEVICE **devlist)
 	free(*devlist);
 }
 
-int discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh)
+DISCFERRET_ERROR discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh)
 {
 	libusb_device **usb_devices;
 	bool match = false;
@@ -330,12 +330,12 @@ int discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh)
 	}
 }
 
-int discferret_open_first(DISCFERRET_DEVICE_HANDLE **dh)
+DISCFERRET_ERROR discferret_open_first(DISCFERRET_DEVICE_HANDLE **dh)
 {
 	return discferret_open(NULL, dh);
 }
 
-int discferret_close(DISCFERRET_DEVICE_HANDLE *dh)
+DISCFERRET_ERROR discferret_close(DISCFERRET_DEVICE_HANDLE *dh)
 {
 	// Check that the library has been initialised
 	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
@@ -352,7 +352,7 @@ int discferret_close(DISCFERRET_DEVICE_HANDLE *dh)
 	return DISCFERRET_E_OK;
 }
 
-int discferret_update_capabilities(DISCFERRET_DEVICE_HANDLE *dh)
+DISCFERRET_ERROR discferret_update_capabilities(DISCFERRET_DEVICE_HANDLE *dh)
 {
 	int err;
 	DISCFERRET_DEVICE_INFO devinfo;
@@ -400,7 +400,7 @@ int discferret_update_capabilities(DISCFERRET_DEVICE_HANDLE *dh)
 	return DISCFERRET_E_OK;
 }
 
-int discferret_get_info(DISCFERRET_DEVICE_HANDLE *dh, DISCFERRET_DEVICE_INFO *info)
+DISCFERRET_ERROR discferret_get_info(DISCFERRET_DEVICE_HANDLE *dh, DISCFERRET_DEVICE_INFO *info)
 {
 	unsigned char buf[64];
 	int i, r, a;
@@ -454,7 +454,7 @@ int discferret_get_info(DISCFERRET_DEVICE_HANDLE *dh, DISCFERRET_DEVICE_INFO *in
 	return DISCFERRET_E_OK;
 }
 
-int discferret_fpga_load_begin(DISCFERRET_DEVICE_HANDLE *dh)
+DISCFERRET_ERROR discferret_fpga_load_begin(DISCFERRET_DEVICE_HANDLE *dh)
 {
 	// Check that the library has been initialised
 	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
@@ -483,36 +483,7 @@ int discferret_fpga_load_begin(DISCFERRET_DEVICE_HANDLE *dh)
 	}
 }
 
-int discferret_fpga_get_status(DISCFERRET_DEVICE_HANDLE *dh)
-{
-	// Check that the library has been initialised
-	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
-
-	// Make sure device handle is not NULL
-	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
-
-	// Send an FPGA_POLL command
-	unsigned char buf = CMD_FPGA_POLL;
-	int a, r;
-	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_OUT, &buf, 1, &a, USB_TIMEOUT);
-	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
-
-	// Read the response code
-	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, &buf, 1, &a, USB_TIMEOUT);
-	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
-
-	// Check the response code
-	switch (buf) {
-		case FW_ERR_FPGA_NOT_CONF:
-			return DISCFERRET_E_FPGA_NOT_CONFIGURED;
-		case FW_ERR_OK:
-			return DISCFERRET_E_OK;
-		default:
-			return DISCFERRET_E_USB_ERROR;
-	}
-}
-
-int discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len, bool swap)
+DISCFERRET_ERROR discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len, bool swap)
 {
 	// Check that the library has been initialised
 	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
@@ -555,7 +526,37 @@ int discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *bloc
 	}
 }
 
-int discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *rbfdata, size_t len)
+
+DISCFERRET_ERROR discferret_fpga_get_status(DISCFERRET_DEVICE_HANDLE *dh)
+{
+	// Check that the library has been initialised
+	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+
+	// Make sure device handle is not NULL
+	if (dh == NULL) return DISCFERRET_E_BAD_PARAMETER;
+
+	// Send an FPGA_POLL command
+	unsigned char buf = CMD_FPGA_POLL;
+	int a, r;
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_OUT, &buf, 1, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+
+	// Read the response code
+	r = libusb_bulk_transfer(dh->dh, 1 | LIBUSB_ENDPOINT_IN, &buf, 1, &a, USB_TIMEOUT);
+	if ((r != 0) || (a != 1)) return DISCFERRET_E_USB_ERROR;
+
+	// Check the response code
+	switch (buf) {
+		case FW_ERR_FPGA_NOT_CONF:
+			return DISCFERRET_E_FPGA_NOT_CONFIGURED;
+		case FW_ERR_OK:
+			return DISCFERRET_E_OK;
+		default:
+			return DISCFERRET_E_USB_ERROR;
+	}
+}
+
+DISCFERRET_ERROR discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *rbfdata, size_t len)
 {
 	int resp;
 
@@ -624,7 +625,7 @@ int discferret_reg_peek(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr)
 	}
 }
 
-int discferret_reg_poke(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr, unsigned char data)
+DISCFERRET_ERROR discferret_reg_poke(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr, unsigned char data)
 {
 	// Check that the library has been initialised
 	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
@@ -683,7 +684,7 @@ long discferret_ram_addr_get(DISCFERRET_DEVICE_HANDLE *dh)
 	}
 }
 
-int discferret_ram_addr_set(DISCFERRET_DEVICE_HANDLE *dh, unsigned long addr)
+DISCFERRET_ERROR discferret_ram_addr_set(DISCFERRET_DEVICE_HANDLE *dh, unsigned long addr)
 {
 	// Check that the library has been initialised
 	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
@@ -755,7 +756,7 @@ static int ramWrite_private(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, 
 	}
 }
 
-int discferret_ram_write(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len)
+DISCFERRET_ERROR discferret_ram_write(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len)
 {
 	size_t blksz, pos, i;
 	int resp;
@@ -844,7 +845,7 @@ static int ramRead_private(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, s
 	}
 }
 
-int discferret_ram_read(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len)
+DISCFERRET_ERROR discferret_ram_read(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len)
 {
 	size_t blksz, pos, i;
 	int resp;
@@ -897,7 +898,7 @@ long discferret_get_status(DISCFERRET_DEVICE_HANDLE *dh)
 	return (rvb << 8) + rva;
 }
 
-int discferret_get_index_time(DISCFERRET_DEVICE_HANDLE *dh, bool wait, double *timeval)
+DISCFERRET_ERROR discferret_get_index_time(DISCFERRET_DEVICE_HANDLE *dh, bool wait, double *timeval)
 {
 	int err;
 	uint16_t i;
@@ -930,7 +931,7 @@ int discferret_get_index_time(DISCFERRET_DEVICE_HANDLE *dh, bool wait, double *t
 	return DISCFERRET_E_OK;
 }
 
-int discferret_get_index_frequency(DISCFERRET_DEVICE_HANDLE *dh, bool wait, double *freqval)
+DISCFERRET_ERROR discferret_get_index_frequency(DISCFERRET_DEVICE_HANDLE *dh, bool wait, double *freqval)
 {
 	double tm;
 	int err;
@@ -945,7 +946,7 @@ int discferret_get_index_frequency(DISCFERRET_DEVICE_HANDLE *dh, bool wait, doub
 	return DISCFERRET_E_OK;
 }
 
-int discferret_seek_set_rate(DISCFERRET_DEVICE_HANDLE *dh, unsigned long steprate_us)
+DISCFERRET_ERROR discferret_seek_set_rate(DISCFERRET_DEVICE_HANDLE *dh, unsigned long steprate_us)
 {
 	unsigned long srval = (steprate_us / 250);
 
@@ -956,7 +957,7 @@ int discferret_seek_set_rate(DISCFERRET_DEVICE_HANDLE *dh, unsigned long steprat
 	return discferret_reg_poke(dh, DISCFERRET_R_STEP_RATE, srval);
 }
 
-int discferret_seek_recalibrate(DISCFERRET_DEVICE_HANDLE *dh, unsigned long maxsteps)
+DISCFERRET_ERROR discferret_seek_recalibrate(DISCFERRET_DEVICE_HANDLE *dh, unsigned long maxsteps)
 {
 	unsigned long stepcnt = maxsteps;
 
@@ -1007,7 +1008,7 @@ int discferret_seek_recalibrate(DISCFERRET_DEVICE_HANDLE *dh, unsigned long maxs
 	}
 }
 
-int discferret_seek_relative(DISCFERRET_DEVICE_HANDLE *dh, long numsteps)
+DISCFERRET_ERROR discferret_seek_relative(DISCFERRET_DEVICE_HANDLE *dh, long numsteps)
 {
 	unsigned long stepcnt = (numsteps < 0) ? (-numsteps) : numsteps;
 
@@ -1070,7 +1071,7 @@ int discferret_seek_relative(DISCFERRET_DEVICE_HANDLE *dh, long numsteps)
 	}
 }
 
-int discferret_seek_absolute(DISCFERRET_DEVICE_HANDLE *dh, unsigned long track)
+DISCFERRET_ERROR discferret_seek_absolute(DISCFERRET_DEVICE_HANDLE *dh, unsigned long track)
 {
 	if (dh->current_track == -1)
 		return DISCFERRET_E_CURRENT_TRACK_UNKNOWN;
