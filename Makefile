@@ -43,7 +43,7 @@ doc:
 output/$(SOVERS):	$(OBJS_SO)
 	@echo
 	@echo "### Linking shared library"
-	$(LD) $(LDFLAGS) -shared -soname $(SONAME) -o $@ $<
+	$(LD) $(LDFLAGS) -shared -soname $(SONAME) -o $@ $^
 
 output/$(SONAME) output/$(SOLIB):	output/$(SOVERS)
 	-rm output/$(SONAME) output/$(SOLIB)
