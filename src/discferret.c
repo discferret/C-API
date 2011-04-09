@@ -226,7 +226,7 @@ void discferret_devlist_free(DISCFERRET_DEVICE **devlist)
 	free(*devlist);
 }
 
-DISCFERRET_ERROR discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh)
+DISCFERRET_ERROR discferret_open(const char *serialnum, DISCFERRET_DEVICE_HANDLE **dh)
 {
 	libusb_device **usb_devices;
 	bool match = false;
@@ -483,7 +483,7 @@ DISCFERRET_ERROR discferret_fpga_load_begin(DISCFERRET_DEVICE_HANDLE *dh)
 	}
 }
 
-DISCFERRET_ERROR discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len, bool swap)
+DISCFERRET_ERROR discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, const unsigned char *block, const size_t len, const bool swap)
 {
 	// Check that the library has been initialised
 	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
@@ -556,7 +556,7 @@ DISCFERRET_ERROR discferret_fpga_get_status(DISCFERRET_DEVICE_HANDLE *dh)
 	}
 }
 
-DISCFERRET_ERROR discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *rbfdata, size_t len)
+DISCFERRET_ERROR discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, const unsigned char *rbfdata, size_t len)
 {
 	int resp;
 
@@ -715,7 +715,7 @@ DISCFERRET_ERROR discferret_ram_addr_set(DISCFERRET_DEVICE_HANDLE *dh, unsigned 
 	}
 }
 
-static int ramWrite_private(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len)
+static int ramWrite_private(DISCFERRET_DEVICE_HANDLE *dh, const unsigned char *block, size_t len)
 {
 	unsigned char packet[65536+3];
 	size_t i = 0;
@@ -756,7 +756,7 @@ static int ramWrite_private(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, 
 	}
 }
 
-DISCFERRET_ERROR discferret_ram_write(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len)
+DISCFERRET_ERROR discferret_ram_write(DISCFERRET_DEVICE_HANDLE *dh, const unsigned char *block, size_t len)
 {
 	size_t blksz, pos, i;
 	int resp;

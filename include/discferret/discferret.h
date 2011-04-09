@@ -156,7 +156,7 @@ void discferret_devlist_free(DISCFERRET_DEVICE **devlist);
  *
  * dh (the pointer-to-a-pointer) MUST NOT be set to NULL.
  */
-DISCFERRET_ERROR discferret_open(char *serialnum, DISCFERRET_DEVICE_HANDLE **dh);
+DISCFERRET_ERROR discferret_open(const char *serialnum, DISCFERRET_DEVICE_HANDLE **dh);
 
 /**
  * @brief	Open the first available DiscFerret device.
@@ -250,7 +250,7 @@ DISCFERRET_ERROR discferret_fpga_load_begin(DISCFERRET_DEVICE_HANDLE *dh);
  * as this is encapsulates the entire loading sequence, and markedly simplifies
  * user code.
  */
-DISCFERRET_ERROR discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len, bool swap);
+DISCFERRET_ERROR discferret_fpga_load_block(DISCFERRET_DEVICE_HANDLE *dh, const unsigned char *block, const size_t len, const bool swap);
 
 /**
  * @brief	Get the current status of the DiscFerret's FPGA
@@ -278,7 +278,7 @@ DISCFERRET_ERROR discferret_fpga_get_status(DISCFERRET_DEVICE_HANDLE *dh);
  * 			DISCFERRET_E_HARDWARE_ERROR if FPGA failed to enter load mode,
  * 			DISCFERRET_E_FPGA_NOT_CONFIGURED if FPGA rejected the config load.
  */
-DISCFERRET_ERROR discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *rbfdata, size_t len);
+DISCFERRET_ERROR discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, const unsigned char *rbfdata, const size_t len);
 
 /**
  * @brief	Read the contents of a DiscFerret FPGA register.
@@ -289,7 +289,7 @@ DISCFERRET_ERROR discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, unsigned
  * Reads the current contents of the DiscFerret FPGA register at the address
  * specified by the addr parameter.
  */
-int discferret_reg_peek(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr);
+int discferret_reg_peek(DISCFERRET_DEVICE_HANDLE *dh, const unsigned int addr);
 
 /**
  * @brief	Write a value to a DiscFerret FPGA register.
@@ -301,7 +301,7 @@ int discferret_reg_peek(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr);
  * Writes the value in the data parameter to the DiscFerret FPGA register at
  * the address specified in the addr parameter.
  */
-DISCFERRET_ERROR discferret_reg_poke(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr, unsigned char data);
+DISCFERRET_ERROR discferret_reg_poke(DISCFERRET_DEVICE_HANDLE *dh, const unsigned int addr, const unsigned char data);
 
 /**
  * @brief	Get current value of the Acquisition RAM address pointer.
@@ -320,7 +320,7 @@ long discferret_ram_addr_get(DISCFERRET_DEVICE_HANDLE *dh);
  *
  * Sets the DiscFerret's memory address pointer to the value passed in the addr parameter.
  */
-DISCFERRET_ERROR discferret_ram_addr_set(DISCFERRET_DEVICE_HANDLE *dh, unsigned long addr);
+DISCFERRET_ERROR discferret_ram_addr_set(DISCFERRET_DEVICE_HANDLE *dh, const unsigned long addr);
 
 /**
  * @brief	Write a block of data to Acquisition RAM.
@@ -333,7 +333,7 @@ DISCFERRET_ERROR discferret_ram_addr_set(DISCFERRET_DEVICE_HANDLE *dh, unsigned 
  * in the address pointer. The value of the address pointer can be read using
  * discferret_ram_addr_get(), or set using discferret_ram_addr_set().
  */
-DISCFERRET_ERROR discferret_ram_write(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len);
+DISCFERRET_ERROR discferret_ram_write(DISCFERRET_DEVICE_HANDLE *dh, const unsigned char *block, const size_t len);
 
 /**
  * @brief	Read a block of data from Acquisition RAM.
@@ -346,7 +346,7 @@ DISCFERRET_ERROR discferret_ram_write(DISCFERRET_DEVICE_HANDLE *dh, unsigned cha
  * set in the address pointer. The value of the address pointer can be read
  * using discferret_ram_addr_get(), or set using discferret_ram_addr_set().
  */
-DISCFERRET_ERROR discferret_ram_read(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, size_t len);
+DISCFERRET_ERROR discferret_ram_read(DISCFERRET_DEVICE_HANDLE *dh, unsigned char *block, const size_t len);
 
 /**
  * @brief	Get the current status of the DiscFerret.
@@ -369,7 +369,7 @@ long discferret_get_status(DISCFERRET_DEVICE_HANDLE *dh);
  * most recent index pulse, and the one immediately preceding it. This
  * value is proportional to the rotational speed of the disc.
  */
-DISCFERRET_ERROR discferret_get_index_time(DISCFERRET_DEVICE_HANDLE *dh, bool wait, double *timeval);
+DISCFERRET_ERROR discferret_get_index_time(DISCFERRET_DEVICE_HANDLE *dh, const bool wait, double *timeval);
 
 /**
  * @brief	Measure the rotational speed of the disc.
@@ -390,7 +390,7 @@ DISCFERRET_ERROR discferret_get_index_time(DISCFERRET_DEVICE_HANDLE *dh, bool wa
  * 4 RPM to 240,000 RPM on Microcode 001F. While Microcode 001F has a
  * narrower range, it also has a much lower accuracy and timing resolution.
  */
-DISCFERRET_ERROR discferret_get_index_frequency(DISCFERRET_DEVICE_HANDLE *dh, bool wait, double *freqval);
+DISCFERRET_ERROR discferret_get_index_frequency(DISCFERRET_DEVICE_HANDLE *dh, const bool wait, double *freqval);
 
 /**
  * @brief	Set the seek rate.
@@ -406,7 +406,7 @@ DISCFERRET_ERROR discferret_get_index_frequency(DISCFERRET_DEVICE_HANDLE *dh, bo
  * 63750 microseconds per step. The step rate has a resolution of 250
  * microseconds.
  */
-DISCFERRET_ERROR discferret_seek_set_rate(DISCFERRET_DEVICE_HANDLE *dh, unsigned long steprate_us);
+DISCFERRET_ERROR discferret_seek_set_rate(DISCFERRET_DEVICE_HANDLE *dh, const unsigned long steprate_us);
 
 /**
  * @brief	Reposition the drive heads at track 0.
@@ -421,7 +421,7 @@ DISCFERRET_ERROR discferret_seek_set_rate(DISCFERRET_DEVICE_HANDLE *dh, unsigned
  * than 1. DISCFERRET_E_RECAL_FAILED will be returned if track zero was not reached
  * within <i>maxsteps</i> steps.
  */
-DISCFERRET_ERROR discferret_seek_recalibrate(DISCFERRET_DEVICE_HANDLE *dh, unsigned long maxsteps);
+DISCFERRET_ERROR discferret_seek_recalibrate(DISCFERRET_DEVICE_HANDLE *dh, const unsigned long maxsteps);
 
 /**
  * @brief	Seek the drive heads relative to their current position.
@@ -440,7 +440,7 @@ DISCFERRET_ERROR discferret_seek_recalibrate(DISCFERRET_DEVICE_HANDLE *dh, unsig
  * returned if the current track number was unknown before the seek (and is
  * still unknown to libdiscferret).
  */
-DISCFERRET_ERROR discferret_seek_relative(DISCFERRET_DEVICE_HANDLE *dh, long numsteps);
+DISCFERRET_ERROR discferret_seek_relative(DISCFERRET_DEVICE_HANDLE *dh, const long numsteps);
 
 /**
  * @brief	Seek the drive heads to an absolute track.
@@ -454,7 +454,7 @@ DISCFERRET_ERROR discferret_seek_relative(DISCFERRET_DEVICE_HANDLE *dh, long num
  * function. DISCFERRET_E_CURRENT_TRACK_UNKNOWN will be returned if this is
  * not the case, and the seek operation will be aborted.
  */
-DISCFERRET_ERROR discferret_seek_absolute(DISCFERRET_DEVICE_HANDLE *dh, unsigned long track);
+DISCFERRET_ERROR discferret_seek_absolute(DISCFERRET_DEVICE_HANDLE *dh, const unsigned long track);
 
 #ifdef __cplusplus
 }
