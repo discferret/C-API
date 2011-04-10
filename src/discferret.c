@@ -29,7 +29,7 @@
 #include "discferret_version.h"
 
 /// USB timeout value, in milliseconds
-#define USB_TIMEOUT 100
+#define USB_TIMEOUT 1000
 
 /// DiscFerret hardware commands
 enum {
