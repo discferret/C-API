@@ -970,11 +970,11 @@ DISCFERRET_ERROR discferret_seek_recalibrate(DISCFERRET_DEVICE_HANDLE *dh, unsig
 	bool track0_hit = false;
 	while ((stepcnt > 0) && (!track0_hit)) {
 		// figure out how many steps we can move
-		unsigned long thisstep = (stepcnt > DISCFERRET_STEP_COUNT_MASK) ? DISCFERRET_STEP_COUNT_MASK : stepcnt;
+		unsigned long thisstep = (stepcnt > (DISCFERRET_STEP_COUNT_MASK+1)) ? (DISCFERRET_STEP_COUNT_MASK+1) : stepcnt;
 		stepcnt -= thisstep;
 
 		// now move the head by that number of steps
-		discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_TOWARDS_ZERO | thisstep);
+		discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_TOWARDS_ZERO | (thisstep-1));
 
 		// wait for the seek to complete
 		long status;
@@ -1021,16 +1021,16 @@ DISCFERRET_ERROR discferret_seek_relative(DISCFERRET_DEVICE_HANDLE *dh, long num
 	bool track0_hit = false;
 	while ((stepcnt > 0) && (!track0_hit)) {
 		// figure out how many steps we can move
-		unsigned long thisstep = (stepcnt > DISCFERRET_STEP_COUNT_MASK) ? DISCFERRET_STEP_COUNT_MASK : stepcnt;
+		unsigned long thisstep = (stepcnt > (DISCFERRET_STEP_COUNT_MASK+1)) ? (DISCFERRET_STEP_COUNT_MASK+1) : stepcnt;
 		stepcnt -= thisstep;
 
 		// now move the head by that number of steps
 		if (numsteps < 0) {
 			// seek towards zero
-			discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_TOWARDS_ZERO | thisstep);
+			discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_TOWARDS_ZERO | (thisstep-1));
 		} else {
 			// seek away from zero
-			discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_AWAYFROM_ZERO | thisstep);
+			discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_AWAYFROM_ZERO | (thisstep-1));
 		}
 
 		// wait for the seek to complete
@@ -1055,7 +1055,7 @@ DISCFERRET_ERROR discferret_seek_relative(DISCFERRET_DEVICE_HANDLE *dh, long num
 	}
 
 	// we're now either at track 0, or at the track we requested
-	if (track0_hit) {
+	if ((track0_hit) && (numsteps < 0)) {
 		// hit track 0
 		dh->current_track = 0;
 		return DISCFERRET_E_TRACK0_REACHED;
