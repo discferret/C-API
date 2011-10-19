@@ -1,6 +1,6 @@
 // make && gcc -g -ggdb -o test test.c -ldiscferret -lusb-1.0 -L. && ./test
 #include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include "discferret.h"
 
 int main(void)
