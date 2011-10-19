@@ -1,13 +1,18 @@
 Build requirements
 ==================
-  doxygen
+  libusb-1.0
+  doxygen -- only if you want to build the documentation
   srecord (srec_cat) -- only if you change the microcode.rbf file (Microcode image).
+
 
 Build instructions -- Linux (Debian Squeeze or later, Ubuntu 10.04 or later)
 ============================================================================
+  sudo apt-get install libusb-1.0-0-dev
+  make
+  make install
 
-apt-get install srecord doxygen
-make
-make install
 
-Simples!
+To build the documentation:
+===========================
+  make docs
+

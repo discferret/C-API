@@ -1,4 +1,4 @@
-.PHONY:	all install clean doc
+.PHONY:	all install clean docs
 
 SOLIB=libdiscferret.so
 SONAME=$(SOLIB).4
@@ -23,7 +23,7 @@ CFLAGS=-O2 -Wall -pedantic -std=c99 -DNDEBUG -I./include/discferret
 LDFLAGS=-s
 endif
 
-all:	output/$(SOLIB) output/test doc
+all:	output/$(SOLIB) output/test
 
 install:	all
 	mkdir -p $(PREFIX)/lib $(PREFIX)/include/discferret
@@ -35,7 +35,7 @@ install:	all
 	@echo
 	@echo "Installation complete. Now run ldconfig."
 
-doc:
+docs:
 	@echo
 	@echo "### Building documentation"
 	doxygen > doc/doxygen.log
