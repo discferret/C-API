@@ -1,0 +1,13 @@
+Build requirements
+==================
+  doxygen
+  srecord (srec_cat) -- only if you change the microcode.rbf file (Microcode image).
+
+Build instructions -- Linux (Debian Squeeze or later, Ubuntu 10.04 or later)
+============================================================================
+
+apt-get install srecord doxygen
+make
+make install
+
+Simples!
