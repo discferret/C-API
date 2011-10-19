@@ -1,27 +1,44 @@
 .PHONY:	all install clean docs
 
-SOLIB=libdiscferret.so
-SONAME=$(SOLIB).4
-SOVERS=$(SONAME).0
+PLATFORM ?= $(shell ./idplatform.sh)
 
-VERSION=1.2r3
-
+VERSION=1.2r8
+SONAME_VERSION=4
 PREFIX?=/usr/local
+
+CC=gcc
+LD=gcc
+
+ifeq ($(filter $(PLATFORM),osx linux),)
+	$(error Invalid platform specified. Valid platforms are: osx linux)
+endif
+
+ifeq ($(PLATFORM),osx)
+SOLIB	:=	libdiscferret.dylib
+endif
+ifeq ($(PLATFORM),linux)
+SOLIB	:=	libdiscferret.so
+endif
+
+SONAME	:=	$(SOLIB).$(SONAME_VERSION)
+SOVERS	:=	$(SONAME).0
+
+ifeq ($(PLATFORM),osx)
+LDFLAGS	?= -dynamiclib -install_name $(SONAME)
+endif
+
+# debug flags
+ifdef DEBUG
+CFLAGS	+=	-g -ggdb -Wall -pedantic -std=c99 -I./include/discferret
+else
+CFLAGS	+=	-O2 -Wall -pedantic -std=c99 -DNDEBUG -I./include/discferret
+endif
 
 OBJS=discferret.o discferret_microcode.o
 OBJS_SO=$(addprefix obj_so/,$(OBJS))
 OBJS_A=$(addprefix obj_a/,$(OBJS))
 
 INCPTH=include/discferret
-
-CC=gcc
-# debug flags
-ifdef DEBUG
-CFLAGS=-g -ggdb -Wall -pedantic -std=c99 -I./include/discferret
-else
-CFLAGS=-O2 -Wall -pedantic -std=c99 -DNDEBUG -I./include/discferret
-LDFLAGS=-s
-endif
 
 all:	output/$(SOLIB) output/test
 
@@ -43,7 +60,7 @@ docs:
 output/$(SOVERS):	$(OBJS_SO)
 	@echo
 	@echo "### Linking shared library"
-	$(LD) $(LDFLAGS) -shared -soname $(SONAME) -o $@ $^
+	$(LD) $(LDFLAGS) -o $@ $^ `pkg-config --libs libusb-1.0`
 
 output/$(SONAME) output/$(SOLIB):	output/$(SOVERS)
 	-rm output/$(SONAME) output/$(SOLIB)
@@ -53,7 +70,7 @@ output/$(SONAME) output/$(SOLIB):	output/$(SOVERS)
 output/test:	test/test.c output/$(SONAME) $(INCPTH)/discferret.h $(INCPTH)/discferret_version.h
 	@echo
 	@echo "### Building test application"
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -Loutput -ldiscferret -lusb-1.0 $<
+	$(CC) $(CFLAGS) -o $@ -Loutput -ldiscferret -lusb-1.0 $<
 
 #libdiscferret.a:	$(OBJS_A)
 #	ar -cr $@ $<
