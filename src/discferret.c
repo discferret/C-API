@@ -21,7 +21,7 @@
  ****************************************************************************/
 
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <libusb-1.0/libusb.h>
