@@ -70,7 +70,7 @@ char* discferret_copyright_notice(void)
 #ifndef NDEBUG
 #define DBGSTR " (debug build)"
 #else
-#define DBGSTR ""
+#define DBGSTR " (release build)"
 #endif
 
 #ifdef CHECKOUT
