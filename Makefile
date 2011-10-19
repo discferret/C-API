@@ -2,36 +2,43 @@
 
 PLATFORM ?= $(shell ./idplatform.sh)
 
-VERSION=1.2r8
-SONAME_VERSION=4
-PREFIX?=/usr/local
+VERSION			:=	1.2r8
+SONAME_VERSION	:=	4
+PREFIX			?=	/usr/local
 
 CC=gcc
 LD=gcc
 
-ifeq ($(filter $(PLATFORM),osx linux),)
-	$(error Invalid platform specified. Valid platforms are: osx linux)
+############# end of user editable parameters
+
+# Make sure the platform ID is valid
+VALID_PLATFORMS	:=	osx linux
+ifeq ($(filter $(PLATFORM),$(VALID_PLATFORMS)),)
+    $(error Invalid PLATFORM '$(PLATFORM)'. Valid platforms are: $(VALID_PLATFORMS))
 endif
 
+# base name of the shared library name
+SOLIB_PFX		:=	libdiscferret
 ifeq ($(PLATFORM),osx)
-SOLIB	:=	libdiscferret.dylib
+    SOLIB		:=	$(SOLIB_PFX).dylib
+    SONAME		:=	$(SOLIB_PFX).$(SONAME_VERSION).dylib
+    SOVERS		:=	$(SOLIB_PFX).$(SONAME_VERSION).0.dylib
+    LDFLAGS		?=	-dynamiclib -install_name $(SONAME)
 endif
+
 ifeq ($(PLATFORM),linux)
-SOLIB	:=	libdiscferret.so
+    SOLIB		:=	$(SOLIB_PFX).so
+    SONAME		:=	$(SOLIB_PFX).so.$(SONAME_VERSION)
+    SOVERS		:=	$(SOLIB_PFX).so.$(SONAME_VERSION).0
+    LDFLAGS		?=	-shared
 endif
 
-SONAME	:=	$(SOLIB).$(SONAME_VERSION)
-SOVERS	:=	$(SONAME).0
-
-ifeq ($(PLATFORM),osx)
-LDFLAGS	?= -dynamiclib -install_name $(SONAME)
-endif
-
-# debug flags
+# set CFLAGS based on the state of the DEBUG parameter.
+# make {target} DEBUG=1 produces a debug build.
 ifdef DEBUG
-CFLAGS	+=	-g -ggdb -Wall -pedantic -std=c99 -I./include/discferret
+    CFLAGS	+=	-g -ggdb -Wall -pedantic -std=c99 -I./include/discferret
 else
-CFLAGS	+=	-O2 -Wall -pedantic -std=c99 -DNDEBUG -I./include/discferret
+    CFLAGS	+=	-O2 -Wall -pedantic -std=c99 -DNDEBUG -I./include/discferret
 endif
 
 OBJS=discferret.o discferret_microcode.o
@@ -93,7 +100,7 @@ obj_so/discferret.o:	$(INCPTH)/discferret.h $(INCPTH)/discferret_version.h
 have_hg := $(wildcard .hg)
 USE_HG ?= 1
 ifeq ($(strip $(USE_HG)),0)
-have_hg :=
+    have_hg :=
 endif
 
 ifeq ($(strip $(have_hg)),)
