@@ -90,7 +90,7 @@ char* discferret_copyright_notice(void)
  */
 static unsigned char bitswap(unsigned char num)
 {
-	unsigned char val;
+	unsigned char val = 0;
 	for (int i=0; i<8; i++)
 		val = (val << 1) | ((num & 1<<i) ? 1 : 0);
 	return val;
