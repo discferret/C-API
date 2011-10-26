@@ -2,7 +2,7 @@
 
 PLATFORM ?= $(shell ./idplatform.sh)
 
-VERSION			:=	1.2r9
+VERSION			:=	1.2r10
 SONAME_VERSION	:=	4
 PREFIX			?=	/usr/local
 
