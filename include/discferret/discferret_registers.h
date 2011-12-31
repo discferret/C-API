@@ -42,6 +42,8 @@ enum {
 	DISCFERRET_R_ACQ_START_NUM			= 0x08,
 	/// Number of stop event triggers required before acquisition is stopped
 	DISCFERRET_R_ACQ_STOP_NUM			= 0x09,
+	/// Acquisition clock divider ratio
+	DISCFERRET_R_ACQ_CLKSEL				= 0x0A,
 
 	/// Status register 1
 	DISCFERRET_R_STATUS1				= 0x0E,
@@ -167,6 +169,18 @@ enum {
 	DISCFERRET_MFM_CLKSEL_250KBPS	= 0x02,
 	/// 125kbps (??? FM)
 	DISCFERRET_MFM_CLKSEL_125KBPS	= 0x03
+};
+
+/// Legal ACQ_CLKSEL values
+enum {
+	/// Full rate (100MHz)
+	DISCFERRET_ACQ_RATE_100MHZ		= 0x00;
+	/// Half rate (50MHz)
+	DISCFERRET_ACQ_RATE_50MHZ		= 0x01;
+	/// Quarter rate (25MHz)
+	DISCFERRET_ACQ_RATE_25MHZ		= 0x02;
+	/// Eighth rate (12.5MHz)
+	DISCFERRET_ACQ_RATE_12_5MHZ		= 0x03;
 };
 
 /// DiscFerret STATUS bits
