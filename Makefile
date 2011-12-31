@@ -77,7 +77,7 @@ output/$(SONAME) output/$(SOLIB):	output/$(SOVERS)
 output/test:	test/test.c output/$(SONAME) $(INCPTH)/discferret.h $(INCPTH)/discferret_version.h
 	@echo
 	@echo "### Building test application"
-	$(CC) $(CFLAGS) -o $@ -Loutput -ldiscferret -lusb-1.0 $<
+	$(CC) $(CFLAGS) -o $@ -Loutput $< -ldiscferret -lusb-1.0
 
 #libdiscferret.a:	$(OBJS_A)
 #	ar -cr $@ $<
