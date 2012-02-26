@@ -39,16 +39,6 @@ extern "C" {
 #endif
 
 /**
- * Microcode data -- in discferret_microcode.c
- */
-
-/// DiscFerret microcode data
-extern const unsigned char discferret_microcode[];
-/// Length of DiscFerret microcode data
-extern const unsigned long discferret_microcode_length;
-
-
-/**
  * @brief	A structure to encapsulate information about a specific DiscFerret device.
  */
 typedef struct {
@@ -224,8 +214,7 @@ DISCFERRET_ERROR discferret_get_info(DISCFERRET_DEVICE_HANDLE *dh, DISCFERRET_DE
  * Call this function once at the beginning of an FPGA microcode load cycle.
  * A typical load looks like this:
  *   1. A call to discferret_fpga_load_begin()
- *   2. One or more calls to discferret_fpga_load_block() or
- *      discferret_fpga_load_rbf()
+ *   2. One or more calls to discferret_fpga_load_block()
  *   3. A call to discferret_fpga_get_status() to see if the FPGA accepted
  *      the microcode load.
  *
@@ -279,6 +268,20 @@ DISCFERRET_ERROR discferret_fpga_get_status(DISCFERRET_DEVICE_HANDLE *dh);
  * 			DISCFERRET_E_FPGA_NOT_CONFIGURED if FPGA rejected the config load.
  */
 DISCFERRET_ERROR discferret_fpga_load_rbf(DISCFERRET_DEVICE_HANDLE *dh, const unsigned char *rbfdata, const size_t len);
+
+/**
+ * @brief	Load the default DiscFerret microcode image into the FPGA
+ *
+ * Loads the default microcode image into the DiscFerret. This is the microcode
+ * image which is compiled into the version of libdiscferret currently in use.
+ *
+ * @param	dh		DiscFerret device handle
+ * @returns DISCFERRET_E_OK if microcode was loaded successfully,
+ * 			DISCFERRET_E_BAD_PARAMETER if one or more parameters were invalid,
+ * 			DISCFERRET_E_HARDWARE_ERROR if FPGA failed to enter load mode,
+ * 			DISCFERRET_E_FPGA_NOT_CONFIGURED if FPGA rejected the config load.
+ */
+DISCFERRET_ERROR discferret_fpga_load_default(DISCFERRET_DEVICE_HANDLE *dh);
 
 /**
  * @brief	Read the contents of a DiscFerret FPGA register.

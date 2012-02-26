@@ -65,6 +65,15 @@ enum {
 /// DiscFerret library's libusb context
 static libusb_context *usbctx = NULL;
 
+/***
+ * Microcode data -- in discferret_microcode.inc.c
+ *
+ * Yes, I know that #including C files directly is bad form, but in this case
+ * we want to be able to update the microcode in the Makefile and not have to
+ * export the MCODE to applications which use libdiscferret.
+ */
+#include "discferret_microcode.inc.c"
+
 char* discferret_copyright_notice(void)
 {
 #ifndef NDEBUG
@@ -623,6 +632,11 @@ int discferret_reg_peek(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr)
 		default:
 			return DISCFERRET_E_USB_ERROR;
 	}
+}
+
+DISCFERRET_ERROR discferret_fpga_load_default(DISCFERRET_DEVICE_HANDLE *dh)
+{
+	return discferret_fpga_load_rbf(dh, discferret_microcode, discferret_microcode_length);
 }
 
 DISCFERRET_ERROR discferret_reg_poke(DISCFERRET_DEVICE_HANDLE *dh, unsigned int addr, unsigned char data)

@@ -41,7 +41,7 @@ else
     CFLAGS	+=	-O2 -Wall -pedantic -std=c99 -DNDEBUG -I./include/discferret
 endif
 
-OBJS=discferret.o discferret_microcode.o
+OBJS=discferret.o
 OBJS_SO=$(addprefix obj_so/,$(OBJS))
 OBJS_A=$(addprefix obj_a/,$(OBJS))
 
@@ -89,8 +89,14 @@ clean:
 	-rm -rf doc/html
 	-mkdir -p obj_so output doc
 
-src/discferret_microcode.c: microcode.rbf
-	srec_cat -Output $@ -C-Array discferret_microcode $< -Binary
+src/discferret.c: src/discferret_microcode.inc.c
+
+src/discferret_microcode.inc.c: microcode.rbf
+	srec_cat -Output $@.tmp -C-Array discferret_microcode $< -Binary
+	sed -i 's/^const /static const /' $@.tmp
+	sed -i '/^#define/d' $@.tmp
+	-rm $@
+	mv $@.tmp $@
 
 obj_so/%.o:	src/%.c
 	$(CC) -c -fPIC $(CFLAGS) -o $@ $<
