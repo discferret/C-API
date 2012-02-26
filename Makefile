@@ -1,4 +1,4 @@
-.PHONY:	all install clean docs
+.PHONY:	all install clean docs release
 
 PLATFORM ?= $(shell ./idplatform.sh)
 
@@ -63,6 +63,10 @@ docs:
 	@echo
 	@echo "### Building documentation"
 	doxygen > doc/doxygen.log
+
+release:
+	hg up $(shell hg tags | head -2 | tail -1 | sed 's/\([^ ]*\).*/\1/')
+	$(MAKE) src/discferret_microcode.inc.c $(INCPTH)/discferret_version.h
 
 output/$(SOVERS):	$(OBJS_SO)
 	@echo
