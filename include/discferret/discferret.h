@@ -60,6 +60,7 @@ typedef struct {
 	bool	has_track0_flag;			///< True if device has the "track 0 reached during seek" flag bit
 	double	index_freq_multiplier;		///< Index frequency multiplier
 	long	current_track;				///< Current track number
+	int		step_rate_res_us;			///< Step rate resolution in microseconds
 } DISCFERRET_DEVICE_HANDLE;
 
 /**

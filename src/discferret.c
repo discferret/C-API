@@ -376,6 +376,7 @@ DISCFERRET_ERROR discferret_update_capabilities(DISCFERRET_DEVICE_HANDLE *dh)
 	dh->has_index_freq_avail_flag = false;
 	dh->index_freq_multiplier = 0;
 	dh->has_track0_flag = false;
+	dh->step_rate_res_us = 250;
 
 	// Firmware 001B added Fast RAM Access
 	if (devinfo.firmware_ver >= 0x001B) {
@@ -403,6 +404,11 @@ DISCFERRET_ERROR discferret_update_capabilities(DISCFERRET_DEVICE_HANDLE *dh)
 		// Microcode 0021 adds a 'track0 reached during seek' flag
 		if (devinfo.microcode_ver >= 0x0021) {
 			dh->has_track0_flag = true;
+		}
+
+		// Microcode 0029 sets the step rate resolution to 125us
+		if (devinfo.microcode_ver >= 0x0029) {
+			dh->step_rate_res_us = 125;
 		}
 	}
 
@@ -962,10 +968,19 @@ DISCFERRET_ERROR discferret_get_index_frequency(DISCFERRET_DEVICE_HANDLE *dh, bo
 
 DISCFERRET_ERROR discferret_seek_set_rate(DISCFERRET_DEVICE_HANDLE *dh, unsigned long steprate_us)
 {
-	unsigned long srval = (steprate_us / 250);
+	int srval;
 
-	// seek rate counter must be <= 255
-	if (srval > 255)
+	// Make sure step rate is sane (at least 1*RES and no greater than 256*RES)
+	if (steprate_us < dh->step_rate_res_us)
+		return DISCFERRET_E_BAD_PARAMETER;
+	if (steprate_us > (dh->step_rate_res_us * 256))
+		return DISCFERRET_E_BAD_PARAMETER;
+
+	// Calculate the seek rate value
+	srval = (steprate_us - dh->step_rate_res_us) / dh->step_rate_res_us;
+
+	// Final sanity check
+	if ((srval < 0) || (srval > 255))
 		return DISCFERRET_E_BAD_PARAMETER;
 
 	return discferret_reg_poke(dh, DISCFERRET_R_STEP_RATE, srval);
