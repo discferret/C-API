@@ -103,6 +103,8 @@ enum {
 
 	/// Stepping controller: step rate, 250us per count
 	DISCFERRET_R_STEP_RATE				= 0xF0,
+	/// Stepping controller: extended step count (REL_002A or later only)
+	DISCFERRET_R_STEP_EXT				= 0xFE,
 	/// Stepping controller: step command. Bit 7 = direction, bits 6..0 = number of steps.
 	DISCFERRET_R_STEP_CMD				= 0xFF
 };

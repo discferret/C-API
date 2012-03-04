@@ -377,6 +377,7 @@ DISCFERRET_ERROR discferret_update_capabilities(DISCFERRET_DEVICE_HANDLE *dh)
 	dh->index_freq_multiplier = 0;
 	dh->has_track0_flag = false;
 	dh->step_rate_res_us = 250;
+	dh->has_extended_seek = false;
 
 	// Firmware 001B added Fast RAM Access
 	if (devinfo.firmware_ver >= 0x001B) {
@@ -409,6 +410,11 @@ DISCFERRET_ERROR discferret_update_capabilities(DISCFERRET_DEVICE_HANDLE *dh)
 		// Microcode 0029 sets the step rate resolution to 125us
 		if (devinfo.microcode_ver >= 0x0029) {
 			dh->step_rate_res_us = 125;
+		}
+
+		// Microcode 002A adds the Extended Seek Counter
+		if (devinfo.microcode_ver >= 0x002A) {
+			dh->has_extended_seek = true;
 		}
 	}
 
@@ -998,12 +1004,22 @@ DISCFERRET_ERROR discferret_seek_recalibrate(DISCFERRET_DEVICE_HANDLE *dh, unsig
 	// seek back, abort if we hit track 0
 	bool track0_hit = false;
 	while ((stepcnt > 0) && (!track0_hit)) {
-		// figure out how many steps we can move
-		unsigned long thisstep = (stepcnt > (DISCFERRET_STEP_COUNT_MASK+1)) ? (DISCFERRET_STEP_COUNT_MASK+1) : stepcnt;
-		stepcnt -= thisstep;
+		if (dh->has_extended_seek) {
+			// figure out how many steps we can move
+			unsigned long thisstep = (stepcnt > 32768) ? 32768 : stepcnt;
+			stepcnt -= thisstep;
 
-		// now move the head by that number of steps
-		discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_TOWARDS_ZERO | (thisstep-1));
+			// now move the head by that number of steps
+			discferret_reg_poke(dh, DISCFERRET_R_STEP_EXT, (thisstep-1) >> 7);
+			discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_TOWARDS_ZERO | ((thisstep-1) & 0x7f));
+		} else {
+			// figure out how many steps we can move
+			unsigned long thisstep = (stepcnt > (DISCFERRET_STEP_COUNT_MASK+1)) ? (DISCFERRET_STEP_COUNT_MASK+1) : stepcnt;
+			stepcnt -= thisstep;
+
+			// now move the head by that number of steps
+			discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_TOWARDS_ZERO | (thisstep-1));
+		}
 
 		// wait for the seek to complete
 		long status;
@@ -1041,7 +1057,7 @@ DISCFERRET_ERROR discferret_seek_relative(DISCFERRET_DEVICE_HANDLE *dh, long num
 {
 	unsigned long stepcnt = (numsteps < 0) ? (-numsteps) : numsteps;
 
-	// max number of steps must be at least 1
+	// number of steps must be at least 1
 	if (stepcnt < 1) {
 		return DISCFERRET_E_BAD_PARAMETER;
 	}
@@ -1049,17 +1065,34 @@ DISCFERRET_ERROR discferret_seek_relative(DISCFERRET_DEVICE_HANDLE *dh, long num
 	// seek, abort if we hit track 0
 	bool track0_hit = false;
 	while ((stepcnt > 0) && (!track0_hit)) {
-		// figure out how many steps we can move
-		unsigned long thisstep = (stepcnt > (DISCFERRET_STEP_COUNT_MASK+1)) ? (DISCFERRET_STEP_COUNT_MASK+1) : stepcnt;
-		stepcnt -= thisstep;
+		if (dh->has_extended_seek) {
+			// figure out how many steps we can move
+			unsigned long thisstep = (stepcnt > 32768) ? 32768 : stepcnt;
+			stepcnt -= thisstep;
 
-		// now move the head by that number of steps
-		if (numsteps < 0) {
-			// seek towards zero
-			discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_TOWARDS_ZERO | (thisstep-1));
+			// now move the head by that number of steps
+			if (numsteps < 0) {
+				// seek towards zero
+				discferret_reg_poke(dh, DISCFERRET_R_STEP_EXT, (thisstep-1) >> 7);
+				discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_TOWARDS_ZERO | ((thisstep-1) & 0x7f));
+			} else {
+				// seek away from zero
+				discferret_reg_poke(dh, DISCFERRET_R_STEP_EXT, (thisstep-1) >> 7);
+				discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_AWAYFROM_ZERO | ((thisstep-1) & 0x7f));
+			}
 		} else {
-			// seek away from zero
-			discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_AWAYFROM_ZERO | (thisstep-1));
+			// figure out how many steps we can move
+			unsigned long thisstep = (stepcnt > (DISCFERRET_STEP_COUNT_MASK+1)) ? (DISCFERRET_STEP_COUNT_MASK+1) : stepcnt;
+			stepcnt -= thisstep;
+
+			// now move the head by that number of steps
+			if (numsteps < 0) {
+				// seek towards zero
+				discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_TOWARDS_ZERO | (thisstep-1));
+			} else {
+				// seek away from zero
+				discferret_reg_poke(dh, DISCFERRET_R_STEP_CMD, DISCFERRET_STEP_CMD_AWAYFROM_ZERO | (thisstep-1));
+			}
 		}
 
 		// wait for the seek to complete
