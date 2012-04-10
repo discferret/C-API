@@ -12,7 +12,7 @@ LD=gcc
 ############# end of user editable parameters
 
 # Make sure the platform ID is valid
-VALID_PLATFORMS	:=	osx linux
+VALID_PLATFORMS	:=	osx linux win32
 ifeq ($(filter $(PLATFORM),$(VALID_PLATFORMS)),)
     $(error Invalid PLATFORM '$(PLATFORM)'. Valid platforms are: $(VALID_PLATFORMS))
 endif
@@ -30,6 +30,13 @@ ifeq ($(PLATFORM),linux)
     SOLIB		:=	$(SOLIB_PFX).so
     SONAME		:=	$(SOLIB_PFX).so.$(SONAME_VERSION)
     SOVERS		:=	$(SOLIB_PFX).so.$(SONAME_VERSION).0
+    LDFLAGS		?=	-shared
+endif
+
+ifeq ($(PLATFORM),win32)
+    SOLIB		:=	$(SOLIB_PFX).dll
+    SONAME		:=	$(SOLIB_PFX).$(SONAME_VERSION).dll
+    SOVERS		:=	$(SOLIB_PFX).$(SONAME_VERSION).0.dll
     LDFLAGS		?=	-shared
 endif
 
