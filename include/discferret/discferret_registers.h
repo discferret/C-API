@@ -151,12 +151,14 @@ enum {
 
 /// Masks and events for ACQ_{START,STOP}_EVT registers
 enum {
-	/// Start/stop acquisition immediately
-	DISCFERRET_ACQ_EVENT_IMMEDIATE	= 0x00,
+	/// No start/stop trigger
+	DISCFERRET_ACQ_EVENT_NEVER		= 0x00,
 	/// Start/stop acquisition at next index pulse
 	DISCFERRET_ACQ_EVENT_INDEX		= 0x01,
 	/// Start/stop acquisition at next sync word match
 	DISCFERRET_ACQ_EVENT_SYNC_WORD	= 0x02,
+	/// Start/stop acquisition immediately
+	DISCFERRET_ACQ_EVENT_ALWAYS		= 0x04,
 	/// "wait for HSTMD before checking for acquisition trigger" combination bit
 	DISCFERRET_ACQ_EVENT_WAIT_HSTMD	= 0x80
 };
