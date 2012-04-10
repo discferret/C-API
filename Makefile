@@ -2,8 +2,8 @@
 
 PLATFORM ?= $(shell ./idplatform.sh)
 
-VERSION			:=	1.6
-SONAME_VERSION	:=	6
+VERSION			:=	1.7
+SONAME_VERSION	:=	7
 PREFIX			?=	/usr/local
 
 CC=gcc
