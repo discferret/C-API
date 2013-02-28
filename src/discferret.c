@@ -281,8 +281,8 @@ DISCFERRET_ERROR discferret_open(const char *serialnum, DISCFERRET_DEVICE_HANDLE
 				if (r != 0) continue;
 
 				// Get the serial number
-				unsigned char sernum[256];
 				if (desc.iSerialNumber != 0) {
+					unsigned char sernum[256];
 					int len = libusb_get_string_descriptor_ascii(ldh, desc.iSerialNumber, sernum, sizeof(sernum));
 					if (len <= 0) sernum[0] = '\0';
 
@@ -1148,4 +1148,4 @@ DISCFERRET_ERROR discferret_seek_absolute(DISCFERRET_DEVICE_HANDLE *dh, unsigned
 	return discferret_seek_relative(dh, track - dh->current_track);
 }
 
-// vim: ts=4
+// vim: ts=4 noet sw=4
