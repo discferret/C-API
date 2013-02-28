@@ -107,14 +107,12 @@ static unsigned char bitswap(unsigned char num)
 
 DISCFERRET_ERROR discferret_init(void)
 {
-	int r;
-
 	// Check if library has already been initialised
 	if (usbctx != NULL)
 		return DISCFERRET_E_ALREADY_INIT;
 
 	// Initialise libusb
-	if ((r = libusb_init(&usbctx)) < 0)
+	if (libusb_init(&usbctx) < 0)
 		return DISCFERRET_E_USB_ERROR;
 
 #ifndef NDEBUG
