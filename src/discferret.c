@@ -146,17 +146,20 @@ int discferret_find_devices(DISCFERRET_DEVICE **devlist)
 	int cnt;
 
 	// Check that the library has been initialised
-	if (usbctx == NULL) return DISCFERRET_E_NOT_INIT;
+	if (usbctx == NULL)
+		return DISCFERRET_E_NOT_INIT;
 
 	// Initialise the device list pointer
-	if (devlist != NULL) *devlist = NULL;
+	if (devlist != NULL)
+		*devlist = NULL;
 
 	// Scan for libusb devices
 	cnt = libusb_get_device_list(usbctx, &usb_devices);
 
 	// If no devices (or an error), then we can't do anything...
 	if (cnt <= 0) {
-		*devlist = NULL;
+		if (devlist != NULL)
+			*devlist = NULL;
 		return (cnt < 0) ? DISCFERRET_E_USB_ERROR : 0;
 	}
 
