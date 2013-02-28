@@ -156,8 +156,6 @@ int discferret_find_devices(DISCFERRET_DEVICE **devlist)
 
 	// If no devices (or an error), then we can't do anything...
 	if (cnt <= 0) {
-		if (devlist != NULL)
-			*devlist = NULL;
 		return (cnt < 0) ? DISCFERRET_E_USB_ERROR : 0;
 	}
 
