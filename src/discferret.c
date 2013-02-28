@@ -313,11 +313,16 @@ DISCFERRET_ERROR discferret_open(const char *serialnum, DISCFERRET_DEVICE_HANDLE
 				} else {
 					// Interface claimed! Pass the device handle back to the caller.
 					*dh = malloc(sizeof(DISCFERRET_DEVICE_HANDLE));
+					if (*dh == NULL) {
+						libusb_close(ldh);
+						return DISCFERRET_E_OUT_OF_MEMORY;
+					}
 					(*dh)->dh = ldh;
 
 					// Pull the firmware version and set the capability flags
 					if (discferret_update_capabilities(*dh) != DISCFERRET_E_OK) {
 						libusb_close(ldh);
+						free(*dh);
 						match = false;
 						continue;
 					}
